@@ -13,6 +13,11 @@ Version: 1.0
 Author URI: http://armyman.ch/
 */
 
+foreach ( glob( dirname(__FILE__) . '/fields/*.php' ) as $filename ) {
+  require_once $filename;
+}
+
+
 /**
  * Base class for AM_CPT and AM_Tax
  */
@@ -937,7 +942,7 @@ class AM_MB {
     // Set all fields values and sanitize before output.
     foreach ( $this->fields as $field ) {
       $field->set_value_old( get_post_meta( get_the_ID(), $field->get_id(), true ) );
-      $field->clean_data();
+//      $field->clean_data();
       $field->sanitize();
     }
 
@@ -978,8 +983,8 @@ class AM_MB {
       $field->set_value_new( $value_new );
       $field->set_value_old( get_post_meta( $post_id, $field->get_id(), true ) );
 
-      // Validate field before save.
-      $field->validate();
+      // Sanitize field before save.
+      $field->sanitize();
       $field->save( $post_id );
     }
   }
@@ -997,25 +1002,31 @@ class AM_MB {
     if ( $this->fields ) {
       $out = '<table class="form-table meta-box mb-id-' . $this->id . '">';
 
-      $errors = array();
+    //  $errors = array();
       foreach ( $this->fields as $field ) {
+
+        // Add class to description.
+        if ( '' != $field->get_desc() ) {
+          $field->set_desc( '<span class="description">' . $field->get_desc() . '</span>' );
+        }
+
         $out .= '<tr>';
 
         if ( 'plaintext' == $field->get_type() ) {
-//          $out .= '<td colspan="2" class="meta-box-plaintext"><span' . $field->get_classes() . '>' . $field->get_label() . '</span>' . $field->get_desc();
+    //      $out .= '<td colspan="2" class="meta-box-plaintext"><span' . $field->get_classes() . '>' . $field->get_label() . '</span>' . $field->get_desc();
           $out .= '<td colspan="2" class="meta-box-plaintext">';
         } else {
           $for = $field->get_id();
           // If field is repeatable, set label for first field.
-          if ( 'repeatable' == $field->get_type() && $field->get_repeatable_fields() ) {
-            $for = reset( $field->get_repeatable_fields() )->get_id( true ) . '-0';
+          if ( 'repeatable' == $field->get_type() && $rep_fields = $field->get_repeatable_fields() ) {
+            $for = reset( $rep_fields )->get_id( true ) . '-0';
           }
           $out .= '<th><label class="meta-box-field-label" for="' . $for . '">' . $field->get_label() . '</label>' . $field->get_desc() . '</th>
             <td>
           ';
         }
 
-        $errors[] = $field->get_label();
+    //    $errors[] = $field->get_label();
 
         $out .= $field->output() . '
             </td>
@@ -1027,7 +1038,7 @@ class AM_MB {
 
       echo $out;
 
-/*      $err = '';
+    /*  $err = '';
       if ( $errors ) {
         $err = sprintf( '<div class="error">' . __( 'Meta box "%s" contains input errors (%s)', 'textdomain' ) . '</div>',
           $this->id,
@@ -1036,6 +1047,7 @@ class AM_MB {
       }
 
       echo $out . $err;*/
+
     } else {
       _e( 'No fields have been assigned to this meta box.', 'textdomain' );
     }
@@ -1121,12 +1133,12 @@ abstract class AM_MBF {
   protected $sanitizer = 'text_field';
 
   /**
-   * The validator to use for this field.
+   * Check if this field is being saved or loaded.
    *
    * @since 1.0.0
-   * @var string
+   * @var boolean
    */
-  protected $validator = 'text_field'; // TODO: really necessary?!
+  protected $is_saving = false;
 
   /**
    * The size of this field's input.
@@ -1281,7 +1293,8 @@ abstract class AM_MBF {
       }
     }
 
-    return $new_fields;
+    // Remove empty / null values.
+    return array_filter( $new_fields );
   }
 
   /**
@@ -1323,31 +1336,29 @@ abstract class AM_MBF {
    * @since 1.0.0
    */
   public function clean_data() {
-    $this->id       = $this->id;
     $this->size     = ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 30;
     $this->desc     = ( isset( $this->desc ) && '' != $this->desc ) ? '<span class="description">' . $this->desc . '</span>' : '';
-    $this->multiple = (bool)$this->multiple;
 
     // Clean up all repeatable fields.
     foreach ( $this->get_repeatable_fields() as $rep_field ) {
       $rep_field->clean_data();
     }
   }
-//?
+
   /**
    * Modify the new values before it gets sanitized. Could be used to bring the data into the right format.
    */
   protected function pre_sanitize() {
     // This can be overridden if necessary.
   }
-//?
+
   /**
    * Modify the new values after they have been  it gets sanitized. Could be used to bring the data into the right format.
    */
   protected function post_sanitize() {
     // This can be overridden if necessary.
   }
-//?
+
   /**
    * Sanitize the new value of this field and all repeatable fields.
    */
@@ -1355,17 +1366,21 @@ abstract class AM_MBF {
     // Pre-Sanitize new value data.
     $this->pre_sanitize();
 
-    if ( isset( $this->value_old ) ) {
+    // Check which values have to be sanitized, the old or new ones.
+    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value_old;
 
+    if ( isset( $values_to_sanitize ) ) {
+
+      // If the value to sanitize is an array, sanitize each individual element of the array.
+      // Remember if the value was an array to begin with, because an array is created anyways to loop through the entries.
       $was_array = true;
-      $values = $this->value_old;
-      if ( ! is_array( $values ) ) {
-        $values = array ( $values );
+      if ( ! is_array( $values_to_sanitize ) ) {
+        $values_to_sanitize = array ( $values_to_sanitize );
         $was_array = false;
       }
 
       $values_sanitized = array();
-      foreach ( $values as $key => $value ) {
+      foreach ( $values_to_sanitize as $key => $value ) {
         switch ( $this->sanitizer ) {
           case 'absint':
             $values_sanitized[ $key ] = absint( $value ); break;
@@ -1386,80 +1401,28 @@ abstract class AM_MBF {
           case 'title':
             $values_sanitized[ $key ] = sanitize_title( $value ); break;
           case 'boolean':
-            $values_sanitized[ $key ] = ( isset( $value ) && ( $value == 1 || $value == true ) ); break;
+            $values_sanitized[ $key ] = ( isset( $value ) && ( intval( $value ) === 1 || true === $value || 'true' === trim( $value ) ) ); break;
           case 'text_field':
           default:
             $values_sanitized[ $key ] = sanitize_text_field( $value );
         }
       }
+
+
+      // If the value was an array to start with, just take the first entry of the newly sanitized array.
       if ( ! $was_array ) {
         $values_sanitized = reset( $values_sanitized );
       }
-      $this->value_old = $values_sanitized;
+
+      if ( $this->is_saving ) {
+        $this->value_new = $values_sanitized;
+      } else {
+        $this->value_old = $values_sanitized;
+      }
     }
 
     // Post-Sanitize new value data.
     $this->post_sanitize();
-  }
-//?
-  /**
-   * Pre-Validate the new values before they get validated. Could be used to bring the data into the right format.
-   */
-  protected function pre_validate() {
-    // This can be overridden if necessary.
-  }
-//?
-  /**
-   * Post-Validate the new values before they get saved. Could be used to bring the data into the right format.
-   */
-  protected function post_validate() {
-    // This can be overridden if necessary.
-  }
-//?
-  /**
-   * Validate the new values of this field and all repeatable fields before being saved as meta data.
-   */
-  public function validate() {
-    // Pre-Validate new value data.
-    $this->pre_validate();
-
-    if ( isset( $this->value_new ) ) {
-      $was_array = true;
-      $values = $this->value_new;
-      if ( ! is_array( $values ) ) {
-        $values = array ( $values );
-        $was_array = false;
-      }
-      $values_validated = array();
-      foreach ( $values as $key => $value ) {
-        switch ( $this->validator ) {
-          case 'absint':
-            $values_validated[ $key ] = absint( $value ); break;
-          case 'intval':
-            $values_validated[ $key ] = intval( $value ); break;
-          case 'floatval':
-            $values_validated[ $key ] = floatval( $value ); break;
-          case 'url':
-            $values_validated[ $key ] = esc_url_raw( $value ); break;
-          case 'email':
-            $values_validated[ $key ] = sanitize_email( $value ); break;
-          case 'title':
-            $values_validated[ $key ] = sanitize_title( $value ); break;
-          case 'boolean':
-            $values_validated[ $key ] = ( isset( $value ) && ( $value == 1 || $value == true ) ); break;
-          case 'text_field':
-          default:
-            $values_validated[ $key ] = sanitize_text_field( $value );
-        }
-      }
-      if ( ! $was_array ) {
-        $values_validated = reset( $values_validated );
-      }
-      $this->value_new = $values_validated;
-    }
-
-    // Post-Validate new value data.
-    $this->post_validate();
   }
 
   /**
@@ -1721,6 +1684,21 @@ abstract class AM_MBF {
       $data_atts .= ' data-' . $key . '="' . esc_attr( $value ) . '"';
     }
     return $data_atts;
+  }
+
+  /**
+   * Get or set the saving flag. Defines if the field is currently being saved or loaded.
+   *
+   * @since 1.0.0
+   *
+   * @param  bool|null $is_saving If bool, set the passed value, else return the set value.
+   * @return boolean
+   */
+  final public function is_saving( $is_saving = null ) {
+    if ( is_bool( $is_saving ) ) {
+      $this->is_saving = $is_saving;
+    }
+    return $this->is_saving;
   }
 
   /**
@@ -2053,946 +2031,21 @@ abstract class AM_MBF {
 
 
 
-/**
- * Output plain text as an h2 header. Use this to split the meta box into seperate sections.
- */
-class AM_MBF_PlainText extends AM_MBF {
-  protected static $type = 'plaintext';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $label = ( isset( $this->label ) && '' != $this->label ) ? '<h2>' . $this->label . '</h2>' : '';
-    return $label . $this->desc;
-  }
 
-  /**
-   * Override default save function.
-   */
-  public function save() {
-    // Nothing to be saved...
-  }
-}
 
-class AM_MBF_Text extends AM_MBF {
-  protected static $type = 'text';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="text" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_attr( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
 
-class AM_MBF_Tel extends AM_MBF {
-  protected static $type = 'tel';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="tel" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_attr( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
 
-class AM_MBF_Email extends AM_MBF {
-  protected static $type = 'email';
-  protected $sanitizer = 'email';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="email" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_attr( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
 
-class AM_MBF_Url extends AM_MBF {
-  protected static $type = 'url';
-  protected $sanitizer = 'url';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="url" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_url_raw( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
 
-class AM_MBF_Number extends AM_MBF {
-  protected static $type = 'number';
-  protected $sanitizer = 'intval';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="number" name="' . $this->name . '" id="' . $this->id . '" value="' . intval( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
 
-// TODO: $size for cols and rows
-class AM_MBF_TextArea extends AM_MBF {
-  protected static $type = 'textarea';
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    return '<textarea name="' . $this->name . '" id="' . $this->id . '" cols="60" rows="4"' . $this->get_classes() . $this->get_data_atts() . '>' . esc_textarea( $this->value_old ) . '</textarea>';
-  }
-}
 
-// TODO!! repeatable field!
-class AM_MBF_Editor extends AM_MBF {
-  protected static $type = 'editor';
-  protected $sanitizer = 'text';
-  protected $is_repeatable = false;
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $this->settings['textarea_name'] = $this->name;
-    $this->settings['editor_class']  = $this->get_classes( '', false );
-
-    ob_start();
-    wp_editor( $this->value_old, $this->id, $this->settings );
-    return ob_get_clean() .
-      '<br class="clear" />' . $this->desc;
-  }
-}
-
-// TODO: get data atts need to be compatible with options, get_data_atts() on radio elements?
-class AM_MBF_RadioGroup extends AM_MBF {
-  protected static $type = 'radio_group';
-  protected $sanitizer = 'text';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    // Backup id.
-    $id_bkp = $this->id;
-
-    $ret .= '<ul class="meta-box-items">';
-    foreach ( $this->options as $opt_value => $opt_label ) {
-      $checked = checked( $this->value_old, $opt_value, false );
-      $this->id = $this->id . '-' . $opt_value;
-
-      $ret .= '
-        <li>
-          <input type="radio" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_attr( $opt_value ) . '" ' . $checked . $this->get_classes() . $this->get_data_atts() . ' />
-          <label for="' . $this->id . '">' . $opt_label . '</label>
-        </li>
-      ';
-    }
-    $ret .= '</ul>';
-    $ret .= '<br class="clear" />' . $this->desc;
-
-    // Revert id.
-    $this->id = $id_bkp;
-
-    return $ret;
-  }
-}
-
-// TODO: datetime, time
-class AM_MBF_Date extends AM_MBF {
-  protected static $type = 'date';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $size = ( isset( $this->size ) ) ? $this->size : '30';
-    return '<input type="text"' . $this->get_classes( 'datepicker' ) . ' name="' . $this->name . '" id="' . $this->id . '" value="' . $this->value_old . '" size="' . $size . '"' . $this->get_data_atts() . ' />';
-  }
-}
-
-class AM_MBF_Checkbox extends AM_MBF {
-  protected static $type = 'checkbox';
-  protected $sanitizer = 'boolean';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $checked = checked( $this->value_old, true, false );
-    return '<input type="checkbox"' . $this->get_classes() . ' name="' . $this->name . '" id="' . $this->id . '"' . $checked . ' value="1"' . $this->get_data_atts() . ' />
-      <label for="' . $this->id . '">' . $this->get_label() . '</label>';
-  }
-}
-
-class AM_MBF_CheckboxGroup extends AM_MBF {
-  protected static $type = 'checkbox_group';
-  protected $sanitizer = 'boolean';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    // Backup id.
-    $id_bkp = $this->id;
-
-    $ret = '<ul class="meta-box-items">';
-    foreach ( $this->options as $opt_value => $opt_label ) {
-      $checked = checked( is_array( $this->value_old ) && in_array( $opt_value, $this->value_old ), true, false );
-      $this->id = $this->id . '-' . $opt_value;
-      $ret .= '
-        <li>
-          <input type="checkbox" value="' . $opt_value . '" name="' . $this->name . '[]" id="' . $this->id . '"' . $checked . $this->get_classes() . $this->get_data_atts() . ' />
-          <label for="' . $this->id . '">' . $opt_label . '</label>
-        </li>
-      ';
-    }
-    $ret .= '</ul>';
-    $ret .= '<br class="clear" />' . $this->desc;
-
-    // Revert id.
-    $this->id = $id_bkp;
-
-    return $ret;
-  }
-}
-
-class AM_MBF_Select extends AM_MBF {
-  protected static $type = 'select';
-  protected $sanitizer = 'text';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select name="' . $this->name . '" id="' . $this->id . '"' . $multiple . $this->get_classes() . $this->get_data_atts() . '>';
-    if ( ! $this->is_multiple ) {
-      $ret .= '<option value=""></option>'; // Select One
-    }
-    foreach ( $this->options as $opt_value => $opt_label ) {
-      $selected = selected( $this->value_old, $opt_value, false );
-      $ret .= '<option value="' . $opt_value . '"' . $selected . '>' . $opt_label . '</option>';
-    }
-    $ret .= '</select>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-class AM_MBF_Chosen extends AM_MBF {
-  protected static $type = 'chosen';
-  protected $sanitizer = 'text';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select data-placeholder="' . __( 'Select One', 'textdomain' ) . '" name="' . $this->name . '" id="' . $this->id . '"' . $multiple . $this->get_classes( 'chosen' ) . $this->get_data_atts() . '>';
-    if ( ! $this->is_multiple ) {
-      $ret .= '<option value=""></option>'; // Select One
-    }
-    foreach ( $this->options as $opt_value => $opt_label ) {
-      $selected = selected( $this->value_old, $opt_value, false );
-      $ret .= '<option value="' . $opt_value . '"' . $selected . '>' . $opt_label . '</option>';
-    }
-    $ret .= '</select>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-// TODO: use wp-color-picker?
-class AM_MBF_Color extends AM_MBF {
-  protected static $type = 'color';
-  protected $sanitizer = 'color';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $value = ( $this->value_old ) ? $this->value_old : '#';
-    $size = ( isset( $this->size ) ) ? $this->size : '7';
-    $ret = '<input type="text" name="' . $this->name . '" id="' . $this->id . '" value="' . $value . '" size="' . $size . '"' . $this->get_classes() . $this->get_data_atts() . ' />
-      <div id="colorpicker-' . $this->id . '"></div>
-        <script type="text/javascript">
-        jQuery(function(jQuery) {
-          jQuery("#colorpicker-' . $this->id . '").hide();
-          jQuery("#colorpicker-' . $this->id . '").farbtastic("#' . $this->id . '");
-          jQuery("#' . $this->id . '").bind("blur", function() { jQuery("#colorpicker-' . $this->id . '").hide(); } );
-          jQuery("#' . $this->id . '").bind("focus", function() { jQuery("#colorpicker-' . $this->id . '").show(); } );
-        });
-        </script>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-class AM_MBF_PostCheckboxes extends AM_MBF {
-  protected static $type = 'post_checkboxes';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    // Backup id.
-    $id_bkp = $this->id;
-
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1 ) );
-    $ret = '<ul class="meta-box-items">';
-    foreach ( $posts as $item ) {
-      $checked = checked( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $this->id = $this->id . '-' . $item->ID;
-      $ret .= '
-        <li>
-          <input type="checkbox" value="' . $item->ID . '" name="' . $this->name . '[]" id="' . $this->id . '"' . $checked . $this->get_classes() . $this->get_data_atts() . ' />
-          <label for="' . $this->id . '">' . $item->post_title . '</label>
-        </li>
-      ';
-    }
-    $post_type_object = get_post_type_object( $this->post_type );
-    $ret .= '</ul>';
-    $ret .= '<br class="clear" /><span class="description alignright"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
-
-    // Revert id.
-    $this->id = $id_bkp;
-
-    return $ret;
-  }
-}
-
-class AM_MBF_PostSelect extends AM_MBF {
-  protected static $type = 'post_select';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select name="' . $this->name . '[]" id="' . $this->id . '"'  . $multiple . $this->get_classes() . $this->get_data_atts() . '>';
-    if ( ! $this->is_multiple ) {
-      $ret .= '<option value=""></option>'; // Select One
-    }
-
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
-    foreach ( $posts as $item ) {
-      $selected = selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $ret .= '<option value="' . $item->ID . '"' . $selected . '>' . $item->post_title . '</option>';
-    }
-    $post_type_object = get_post_type_object( $this->post_type );
-    $ret .= '</select>';
-    $ret .= '&nbsp;<span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-class AM_MBF_PostChosen extends AM_MBF {
-  protected static $type = 'post_chosen';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select data-placeholder="' . __( 'Select One', 'textdomain' ) . '" name="' . $this->name . '[]" id="' . $this->id . '"' . $multiple . $this->get_classes( 'chosen' ) . $this->get_data_atts() . '>';
-    if ( ! $this->is_multiple ) {
-      $ret .= '<option value=""></option>'; // Select One
-    }
-
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
-    foreach ( $posts as $item ) {
-      $selected = selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $ret .= '<option value="' . $item->ID . '"' . $selected . '>' . $item->post_title . '</option>';
-    }
-    $post_type_object = get_post_type_object( $this->post_type );
-    $ret .= '</select>';
-    $ret .= '&nbsp;<span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-// TODO: dafuq?
-class AM_MBF_PostDropSort extends AM_MBF {
-  protected static $type = 'post_drop_sort';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    // Areas.
-    $post_type_object = get_post_type_object( $this->post_type );
-    $ret = '<div class="post_drop_sort_areas">';
-    foreach ( $areas as $area_id => $area_label ) {
-      $ret .= '<ul id="area-' . $area_id  . '" class="sort_list">
-        <li class="post_drop_sort_area_name">' . $area_label . '</li>';
-      if ( is_array( $value_old ) ) {
-        $items = explode( ',', $value_old[ $area_id ] );
-        foreach ( $items as $item ) {
-          $ret .= '<li id="' . $item . '">';
-          $ret .= ( 'thumbnail' == $display ) ? get_the_post_thumbnail( $item, array( 204, 30 ) ) : get_the_title( $item );
-          $ret .= '</li>';
-        }
-      }
-      $ret .= '</ul>
-        <input type="hidden" name="' . $this->name . '[' . $area_id . ']"
-        class="store-area-' . $area_id . '"
-        value="' . ( ( $value_old ) ? $value_old[ $area_id ] : '' ) . '" />';
-    }
-    $ret .= '</div>';
-
-    // Source.
-    $exclude = null;
-    if ( ! empty( $value_old ) ) {
-      $exclude = array_values( $value_old );
-    }
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'post__not_in' => $exclude ) );
-    $ret .= '<ul class="post_drop_sort_source sort_list">
-      <li class="post_drop_sort_area_name">Available ' . $this->label . '</li>';
-    foreach ( $posts as $item ) {
-      $ret .= '<li id="' . $item->ID . '">';
-      $ret .= ( 'thumbnail' == $display ) ? get_the_post_thumbnail( $item->ID, array( 204, 30 ) ) : get_the_title( $item->ID );
-      $ret .= '</li>';
-    }
-    $ret .= '</ul>';
-    $ret .= '<br /><span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
-
-// TODO: admin notices for errors.
-// save empty array / remove all checkboxes...
-// does it make sense to have this? duplicate to default WP metabox.
-class AM_MBF_TaxSelect extends AM_MBF {
-  protected static $type = 'tax_select';
-  protected $sanitizer = 'sanitize_title';
-
-  public function save( $post_id ) {
-    wp_set_object_terms( $post_id, $this->value_new, $this->id );
-  }
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $terms = get_terms( $this->id, 'get=all' );
-    if ( ! is_wp_error( $terms ) ) {
-      $taxonomy = get_taxonomy( $this->id );
-      if ( count( $terms ) > 0 ) {
-
-        $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-        $ret = '<select name="' . $this->name . '" id="' . $this->id . '"'  . $multiple . $this->get_data_atts() . '>';
-        if ( ! $this->is_multiple ) {
-          $ret .= '<option value=""></option>'; // Select One
-        }
-
-        $terms_selected = array();
-        foreach ( wp_get_object_terms( get_the_ID(), $this->id ) as $post_term ) {
-    //      $terms_selected[] = ( $taxonomy->hierarchical ) ? $post_term->term_id : $post_term->slug;
-          $terms_selected[] = $post_term->slug;
-        }
-        foreach ( $terms as $term ) {
-    //      $term_value = ( $taxonomy->hierarchical ) ? $term->term_id : $term->slug;
-          $term_value = $term->slug;
-          $selected = selected( in_array( $term_value, $terms_selected ), true, false );
-          $ret .= '<option value="' . $term_value . '"' . $selected . '>' . $term->name . '</option>';
-        }
-        $ret .= '</select>';
-      } else {
-        $ret = '<em>' . $taxonomy->labels->not_found . '</em>';
-      }
-      $ret .= '&nbsp;<span class="description"><a href="' . get_bloginfo( 'url' ) . '/wp-admin/edit-tags.php?taxonomy=' . $this->id . '">Manage ' . $taxonomy->label . '</a></span>';
-    } else {
-      // TODO!!!
-      $error = $terms->get_error_message() . ' "' . $this->id . '"';
-      $ret = '<div class="error">' . $this->meta_box->get_title() . ': ' . $error . '</div>';
-      $ret .= $error;
-    }
-
-    return $ret;
-  }
-}
-
-// TODO: admin notices for errors.
-// save empty array / remove all checkboxes...
-// does it make sense to have this? duplicate to default WP metabox.
-class AM_MBF_TaxCheckboxes extends AM_MBF {
-  protected static $type = 'tax_checkboxes';
-  protected $sanitizer = 'sanitize_title';
-
-  public function save( $post_id ) {
-    wp_set_object_terms( $post_id, $this->value_new, $this->id );
-  }
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $terms = get_terms( $this->id, 'get=all' );
-    if ( ! is_wp_error( $terms ) ) {
-      $taxonomy = get_taxonomy( $this->id );
-      if ( count( $terms ) > 0 ) {
-        $terms_checked = array();
-        foreach ( wp_get_object_terms( get_the_ID(), $this->id ) as $post_term ) {
-    //      $terms_checked[] = ( $taxonomy->hierarchical ) ? $post_term->term_id : $post_term->slug;
-          $terms_checked[] = $post_term->slug;
-        }
-
-        $ret = '<ul class="meta-box-items">';
-        foreach ( $terms as $term ) {
-    //      $term_value = ( $taxonomy->hierarchical ) ? $term->term_id : $term->slug;
-          $term_value = $term->slug;
-          $checked = checked( in_array( $term_value, $terms_checked ), true, false );
-          $ret .= '
-            <li>
-              <input type="checkbox" value="' . $term_value . '" name="' . $this->name . '[]" id="term-' . $term_value . '"' . $checked . $this->get_data_atts() . ' />
-              <label for="term-' . $term_value . '">' . $term->name . '</label>
-            </li>
-          ';
-        }
-        $ret .= '</ul>';
-      } else {
-        // No terms found!
-        $ret = '<em>' . $taxonomy->labels->not_found . '</em>';
-      }
-
-      $post_type = ( isset( $this->post_type ) && in_array( $this->post_type, $taxonomy->object_type ) ) ? $this->post_type : end( $taxonomy->object_type );
-      $ret .= '<br class="clear" /><span class="description alignright"><a href="' . get_bloginfo( 'url' ) . '/wp-admin/edit-tags.php?taxonomy=' . $this->id . '&post_type=' . $post_type . '">Manage ' . $taxonomy->label . '</a></span>';
-    } else {
-      // TODO!!!
-      $error = $terms->get_error_message() . ' "' . $this->id . '"';
-      $ret = '<div class="error">' . $this->meta_box->get_title() . ': ' . $error . '</div>';
-      $ret .= $error;
-    }
-    return $ret;
-  }
-}
-
-class AM_MBF_Slider extends AM_MBF {
-  protected static $type = 'slider';
-  protected $sanitizer = 'floatval';
-
-  public function pre_sanitize() {
-    if ( isset( $this->value_new ) ) {
-      $this->value_new = split( ',', $this->value_new );
-    }
-  }
-
-  public function post_sanitize() {
-    if ( is_array( $this->value_new ) ) {
-      $this->value_new = join( ',', $this->value_new );
-    }
-  }
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    return '<div id="' . $this->id . '-slider"' . $this->get_classes() . '></div>
-      <input type="hidden" name="' . $this->name . '" id="' . $this->id . '" value="' . $this->value_old . '"' . $this->get_data_atts() . ' />';
-  }
-}
-
-class AM_MBF_Image extends AM_MBF {
-  protected static $type = 'image';
-  protected $sanitizer = 'intval';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $image_url = '';
-    $hide_upload_button = $hide_clear_button = ' style="display:none;"';
-
-    if ( ! empty( $this->value_old ) ) {
-      if ( ! $image_url = esc_url( wp_get_attachment_image_src( $this->value_old, 'medium' )[0] ) ) {
-        $image_url = '';
-      }
-      $hide_clear_button = '';
-    } else {
-      $hide_upload_button = '';
-    }
-
-    // Text used by wp.media frame.
-    $wp_media_data = '
-      data-title="' . esc_attr__( 'Choose an Image', 'textdomain' ) . '"
-      data-button="' . esc_attr__( 'Use this Image', 'textdomain' ) . '"
-    ';
-
-    return  '
-      <div' . $this->get_classes( 'meta-box-image' ) . '>
-        <input name="' . $this->name . '" type="hidden" class="meta-box-upload-image" value="' . esc_attr( $this->value_old ) . '"' . $this->get_data_atts() . ' />
-        <img src="' . $image_url . '" class="meta-box-preview-image" alt="' . __( 'Selected image', 'text-domain' ) . '"' . $hide_clear_button . ' />
-        <a href="#" class="meta-box-upload-image-button button" rel="' . get_the_ID() . '"' . $hide_upload_button . $wp_media_data .  '>' . __( 'Choose Image', 'textdomain' ) . '</a>
-        <a href="#" class="meta-box-clear-image-button"' . $hide_clear_button . '>' . __( 'Remove Image', 'textdomain' ) . '</a>
-      </div>';
-  }
-}
-
-class AM_MBF_File extends AM_MBF {
-  protected static $type = 'file';
-  protected $sanitizer = 'intval';
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    $class_icon = 'meta-box-file-icon';
-    $file_url = '';
-
-    $hide_upload_button = $hide_clear_button = ' style="display:none;"';
-    if ( isset( $this->value_old ) && $file_url = esc_url( wp_get_attachment_url( intval( $this->value_old ) ) ) ) {
-      $class_icon .= ' checked';
-      $hide_clear_button = '';
-    } else {
-      $hide_upload_button = '';
-    }
-
-    // Text used by wp.media frame.
-    $wp_media_data = '
-      data-title="' . esc_attr__( 'Choose a File', 'textdomain' ) . '"
-      data-button="' . esc_attr__( 'Use this File', 'textdomain' ) . '"
-    ';
-
-    return '
-      <div' . $this->get_classes( 'meta-box-file' ) . '>
-        <input name="' . $this->name . '" type="hidden" class="meta_box_upload_file" value="' . intval( $this->value ) . '"' . $this->get_data_atts() . ' />
-        <span class="' . $class_icon . '"></span>
-        <span class="meta-box-filename">' . $file_url . '</span>
-        <a href="#" class="meta-box-upload-file-button button" rel="' . get_the_ID() . '"' . $hide_upload_button . $wp_media_data . '>' . __( 'Choose File', 'textdomain' ) . '</a>
-        <a href="#" class="meta-box-clear-file-button"' . $hide_clear_button . '>' . __( 'Remove File', 'textdomain') . '</a>
-      </div>';
-  }
-}
-
-class AM_MBF_Repeatable extends AM_MBF {
-  protected static $type = 'repeatable';
-  protected $is_repeatable = false;
-
-  //TODO: instead of these variables, have an array with the true repeatable field objects.
-  /**
-   * The old value as it is in the database.
-   *
-   * @since 1.0.0
-   *
-   * @var array
-   */
-  private $_value_old = array();
-
-  /**
-   * The new value as it will be saved to the database.
-   *
-   * @since 1.0.0
-   *
-   * @var array
-   */
-  private $_value_new = array();
-
-  /**
-   * Add a field to this repeatable field.
-   *
-   * @param AM_MBF|array  $fields Object or array of AM_MBF to add to this repeatable field.
-   */
-  public function add_field( $fields ) {
-    if ( is_null( $fields ) ) {
-      return;
-    }
-
-    if ( ! is_array( $fields ) ) {
-      $fields = array( $fields );
-    }
-
-    foreach ( $fields as $rep_field ) {
-      if ( is_a( $rep_field, 'AM_MBF' ) && $rep_field->is_repeatable() ) {
-        $rep_field->clean_data();
-
-        // Set the new repeatable names and ids, set up as arrays for the repeatable field.
-        $rep_field->add_data( 'id', $rep_field->get_id() );
-        $rep_field->add_data( 'parent', $this->id );
-
-        $this->repeatable_fields[ $rep_field->get_id() ] = $rep_field;
-      }
-    }
-  }
-
-  /**
-   * Saves the field data.
-   */
-  public function save( $post_id ) {
-    if ( isset( $this->_value_old ) && ( is_null( $this->_value_new ) || '' == $this->_value_new ) ) {
-      delete_post_meta( $post_id, $this->id, $this->_value_old );
-    } elseif ( $this->_value_new != $this->_value_old ) {
-      update_post_meta( $post_id, $this->id, $this->_value_new );
-    }
-  }
-
-  /**
-   * Sanitize the new value of this field and all repeatable fields.
-   */
-  public function sanitize() {
-    if ( is_array( $this->value_old ) ) {
-      // Loop all values.
-      foreach ( $this->value_old as $rep_fields ) {
-        // Loop all fields.
-        if ( is_array( $rep_fields ) ) {
-          foreach ( $rep_fields as $rep_field ) {
-            if ( is_a( $rep_field, 'AM_MBF' ) ) {
-              $rep_field->sanitize();
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Validate the new value of this field and all repeatable fields.
-   */
-  public function validate() {
-    if ( is_array( $this->value_old ) ) {
-      // Loop all values.
-      foreach ( $this->value_old as $rep_fields ) {
-        // Loop all fields.
-        if ( is_array( $rep_fields ) ) {
-          foreach ( $rep_fields as $rep_field ) {
-            if ( is_a( $rep_field, 'AM_MBF' ) ) {
-              $rep_field->validate();
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  public function set_value_old( $value_old ) {
-    $this->_value_old = $value_old;
-
-    if ( is_array( $this->repeatable_fields ) && $this->repeatable_fields && is_array( $value_old ) ) {
-
-      $values_old = array_values( $value_old );
-      $new_values_old = array();
-      $i = count( $values_old );
-      while ( $i-- > -1 ) {
-
-        if ( -1 == $i ) {
-          // Prepare id and name for template fields.
-          foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field->set_id( $this->id . '-' . $rep_field_id . '-empty' );
-            $rep_field->set_name( '' );
-          }
-        } else {
-          // Assign the values to the field objects themselves.
-
-          $values = $values_old[ $i ];
-          $new_values = array();
-
-          // Remember if any of the repeatable fields are set.
-          $is_set = false;
-
-          foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field_id = $rep_field->get_id();
-
-            if ( ! array_key_exists( $rep_field_id, $values ) ) {
-              $values[ $rep_field_id ] = null;
-            } elseif ( isset( $values[ $rep_field_id ] ) && '' != $values[ $rep_field_id ] ) {
-              $is_set = true;
-            }
-
-            // Clone repeatable field to keep original pristine.
-            $rep_field = clone( $rep_field );
-
-            $rep_field->set_value_old( $values[ $rep_field_id ] );
-            $rep_field->set_id( $rep_field_id . '-' . $i );
-            $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
-
-            $new_values[] = $rep_field;
-          }
-          // Only add to values if an old value has been set.
-          if ( $is_set ) {
-            $new_values_old[] = $new_values;
-          }
-        }
-      }
-      // Reverse the entries of the array to have them sorted correctly.
-      $value_old = array_reverse( $new_values_old );
-    }
-    $this->value_old = $value_old;
-  }
-
-
-  public function set_value_new( $value_new ) {
-
-    if ( is_array( $this->repeatable_fields ) && count( $this->repeatable_fields ) > 0 ) {
-
-      if ( is_array( $value_new ) ) {
-
-        // Get rid of empty entries.
-        $values_new = array();
-        foreach ( $value_new as $value ) {
-          if ( is_array( $value ) ) {
-            $value = array_filter( $value );
-            if ( count( $value ) > 0 ) {
-              $values_new[] = $value;
-            }
-          }
-        }
-        $this->_value_new = $values_new;
-
-        $new_values_new = array();
-        $i = count( $values_new );
-        while ( $i-- > 0 ) {
-
-          // Assign the values to the field objects themselves.
-
-          $values = $values_new[ $i ];
-          $new_values = array();
-
-          // Remember if any of the repeatable fields are set.
-          $is_set = false;
-
-          foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field_id = $rep_field->get_id();
-
-            if ( ! array_key_exists( $rep_field_id, $values ) ) {
-              $values[ $rep_field_id ] = null;
-            } elseif ( isset( $values[ $rep_field_id ] ) && '' != $values[ $rep_field_id ] ) {
-              $is_set = true;
-            }
-
-            // Clone repeatable field to keep original pristine.
-            $rep_field = clone( $rep_field );
-
-            $rep_field->set_value_new( $values[ $rep_field_id ] );
-            $rep_field->set_id( $rep_field_id . '-' . $i );
-            $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
-
-            $new_values[] = $rep_field;
-          }
-          // Only add to values if an old value has been set.
-          if ( $is_set ) {
-            $new_values_new[] = $new_values;
-          }
-        }
-        // Reverse the entries of the array to have them sorted correctly.
-        $value_new = array_reverse( $new_values_new );
-      }
-    }
-    $this->value_new = $value_new;
-  }
-
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-
-    $empty_fields_template = '';
-    $field_outputs = '';
-
-    if ( $this->get_repeatable_fields() ) {
-      $values_old = $this->value_old;
-      if ( ! is_array( $values_old ) ) {
-        $values_old = array( $values_old );
-      }
-      // Clean away empty entries.
-      $values_old = array_filter( array_values( $values_old ) );
-
-      for ( $i = -1; $i < count( $values_old ); $i++ ) {
-        $is_empty_template = ( -1 == $i );
-
-        $class_empty_template = ( $is_empty_template ) ? ' class="empty-fields-template" style="display:none;"' : '';
-
-        $field_outputs .= '
-          <tr' . $class_empty_template . '>
-            <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort hndle"></span></td>
-            <td>
-        ';
-
-        // Add all repeatable fields to empty template / Output all saved values.
-        $rep_fields = ( $is_empty_template ) ? $this->repeatable_fields : $values_old[ $i ];
-
-        foreach ( $rep_fields as $rep_field ) {
-          $field_outputs .= '<label class="meta-box-field-label" for="' . $rep_field->get_id() . '">' . $rep_field->get_label() . '</label>';
-          $field_outputs .= $rep_field->output();
-          $field_outputs .= '<br class="clear" />' . $rep_field->get_desc();
-        }
-        $field_outputs .= '
-            </td>
-            <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#"></a></td>
-          </tr>
-        ';
-
-        // Save empty template seperately.
-        if ( $is_empty_template ) {
-          $empty_fields_template = $field_outputs;
-
-          // Reset the field outputs to prevent having the empty template with them.
-          $field_outputs = '';
-        }
-      }
-
-      return '
-        <table id="' . $this->id . '-repeatable" class="meta-box-repeatable" cellspacing="0">
-          <thead>
-            <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'textdomain' ) . '</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top"></a></th>
-            </tr>
-          ' . $empty_fields_template . '
-          </thead>
-          <tbody>
-          ' . $field_outputs . '
-          </tbody>
-          <tfoot>
-            <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'textdomain' ) . '</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom"></a></th>
-            </tr>
-          </tfoot>
-        </table>
-      ';
-    } else {
-      return __( 'No repeatable fields assigned!', 'text-domain' );
-    }
-  }
-}
 
 
 
@@ -3129,7 +2182,7 @@ $rep = AM_MBF::create_batch(
   array( 'number','number1','a simple number input', 'number description' )
 );
 
-$rep[0]->add_field( clone($rep[2]) );
+if(isset($rep[0])) $rep[0]->add_field( clone($rep[2]) );
 
 
 //$mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
@@ -3152,7 +2205,7 @@ $mb->add_field( $rep );
 
 
 //fu($mb);
-$cpt_note->assign_meta_box( array( $mb, $mb2 ) );
+$cpt_note->assign_meta_box( array( $mb, $mb2 = null ) );
 
 $cpt_note->register();
 
