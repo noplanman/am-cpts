@@ -2,34 +2,45 @@
 
 /**
  * Checkboxes of posts.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_PostCheckboxes extends AM_MBF {
   protected static $type = 'post_checkboxes';
+  protected $sanitizer = 'intval';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
     // Backup id.
     $id_bkp = $this->id;
 
+    if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
+      $this->post_type = 'post';
+    }
+
     $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1 ) );
     $ret = '<ul class="meta-box-items">';
     foreach ( $posts as $item ) {
-      $checked = checked( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $this->id = $this->id . '-' . $item->ID;
-      $ret .= '
-        <li>
-          <input type="checkbox" value="' . $item->ID . '" name="' . $this->name . '[]" id="' . $this->id . '"' . $checked . $this->get_classes() . $this->get_data_atts() . ' />
-          <label for="' . $this->id . '">' . $item->post_title . '</label>
-        </li>
-      ';
+      $this->id = $id_bkp . '-' . $item->ID;
+      $ret .= sprintf( '<li><input type="checkbox" value="%3$s" name="%2$s[]" id="%1$s"%5$s%6$s%7$s /><label for="%1$s">%4$s</label></li>',
+        esc_attr( $this->id ),
+        esc_attr( $this->name ),
+        esc_attr( $item->ID ),
+        esc_html( $item->post_title ),
+        checked( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false ),
+        $this->get_classes(),
+        $this->get_data_atts()
+      );
     }
-    $post_type_object = get_post_type_object( $this->post_type );
     $ret .= '</ul>';
-    $ret .= '<br class="clear" /><span class="description alignright"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
+    if ( $posts && $post_type_object = get_post_type_object( $this->post_type ) ) {
+      $ret .= sprintf( '<br class="clear" /><span class="description alignright"><a href="%2$s">Manage %1$s</a></span>',
+        $post_type_object->label,
+        admin_url( 'edit.php?post_type=' . $this->post_type )
+      );
+    }
 
     // Revert id.
     $this->id = $id_bkp;
@@ -40,113 +51,95 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
 
 /**
  * Drop down of posts.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_PostSelect extends AM_MBF {
   protected static $type = 'post_select';
+  protected $sanitizer = 'intval';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select name="' . $this->name . '[]" id="' . $this->id . '"'  . $multiple . $this->get_classes() . $this->get_data_atts() . '>';
+    if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
+      $this->post_type = 'post';
+    }
+
+    $ret = sprintf( '<select name="%2$s[]" id="%1$s"%3$s%4$s%5$s>',
+      esc_attr( $this->id ),
+      esc_attr( $this->name ),
+      ( $this->is_multiple ) ? ' multiple="multiple"' : '',
+      $this->get_classes(),
+      $this->get_data_atts()
+    );
     if ( ! $this->is_multiple ) {
       $ret .= '<option value=""></option>'; // Select One
     }
 
     $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
     foreach ( $posts as $item ) {
-      $selected = selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $ret .= '<option value="' . $item->ID . '"' . $selected . '>' . $item->post_title . '</option>';
+      $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
+        esc_attr( $item->ID ),
+        esc_html( $item->post_title ),
+        selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false )
+      );
     }
-    $post_type_object = get_post_type_object( $this->post_type );
     $ret .= '</select>';
-    $ret .= '&nbsp;<span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
+
+    if ( $posts && $post_type_object = get_post_type_object( $this->post_type ) ) {
+      $ret .= sprintf( '&nbsp;<span class="description alignright"><a href="%2$s">Manage %1$s</a></span>',
+        $post_type_object->label,
+        admin_url( 'edit.php?post_type=' . $this->post_type )
+      );
+    }
+
     return $ret;
   }
 }
 
 /**
  * 'Chosen' drop down of posts.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_PostChosen extends AM_MBF {
   protected static $type = 'post_chosen';
+  protected $sanitizer = 'intval';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select data-placeholder="' . __( 'Select One', 'textdomain' ) . '" name="' . $this->name . '[]" id="' . $this->id . '"' . $multiple . $this->get_classes( 'chosen' ) . $this->get_data_atts() . '>';
+    $ret = sprintf( '<select data-placeholder="%3$s" name="%2$s[]" id="%1$s"%4$s%5$s%6$s>',
+      esc_attr( $this->id ),
+      esc_attr( $this->name ),
+      esc_attr__( 'Select One', 'am-cpts' ),
+      ( $this->is_multiple ) ? ' multiple="multiple"' : '',
+      $this->get_classes( 'chosen' ),
+      $this->get_data_atts()
+    );
     if ( ! $this->is_multiple ) {
       $ret .= '<option value=""></option>'; // Select One
     }
 
     $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
     foreach ( $posts as $item ) {
-      $selected = selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false );
-      $ret .= '<option value="' . $item->ID . '"' . $selected . '>' . $item->post_title . '</option>';
+      $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
+        esc_attr( $item->ID ),
+        esc_html( $item->post_title ),
+        selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false )
+      );
     }
-    $post_type_object = get_post_type_object( $this->post_type );
     $ret .= '</select>';
-    $ret .= '&nbsp;<span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
-    return $ret;
-  }
-}
 
-// TODO: dafuq?
-/**
- * Drop sort of posts.
- */
-class AM_MBF_PostDropSort extends AM_MBF {
-  protected static $type = 'post_drop_sort';
+    if ( $posts && $post_type_object = get_post_type_object( $this->post_type ) ) {
+      $ret .= sprintf( '&nbsp;<span class="description alignright"><a href="%2$s">Manage %1$s</a></span>',
+        $post_type_object->label,
+        admin_url( 'edit.php?post_type=' . $this->post_type )
+      );
+    }
 
-  /**
-   * Return the field output.
-   * @return string
-   */
-  public function output() {
-    // Areas.
-    $post_type_object = get_post_type_object( $this->post_type );
-    $ret = '<div class="post_drop_sort_areas">';
-    foreach ( $areas as $area_id => $area_label ) {
-      $ret .= '<ul id="area-' . $area_id  . '" class="sort_list">
-        <li class="post_drop_sort_area_name">' . $area_label . '</li>';
-      if ( is_array( $value_old ) ) {
-        $items = explode( ',', $value_old[ $area_id ] );
-        foreach ( $items as $item ) {
-          $ret .= '<li id="' . $item . '">';
-          $ret .= ( 'thumbnail' == $display ) ? get_the_post_thumbnail( $item, array( 204, 30 ) ) : get_the_title( $item );
-          $ret .= '</li>';
-        }
-      }
-      $ret .= '</ul>
-        <input type="hidden" name="' . $this->name . '[' . $area_id . ']"
-        class="store-area-' . $area_id . '"
-        value="' . ( ( $value_old ) ? $value_old[ $area_id ] : '' ) . '" />';
-    }
-    $ret .= '</div>';
-
-    // Source.
-    $exclude = null;
-    if ( ! empty( $value_old ) ) {
-      $exclude = array_values( $value_old );
-    }
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'post__not_in' => $exclude ) );
-    $ret .= '<ul class="post_drop_sort_source sort_list">
-      <li class="post_drop_sort_area_name">Available ' . $this->label . '</li>';
-    foreach ( $posts as $item ) {
-      $ret .= '<li id="' . $item->ID . '">';
-      $ret .= ( 'thumbnail' == $display ) ? get_the_post_thumbnail( $item->ID, array( 204, 30 ) ) : get_the_title( $item->ID );
-      $ret .= '</li>';
-    }
-    $ret .= '</ul>';
-    $ret .= '<br /><span class="description"><a href="' . admin_url( 'edit.php?post_type=' . $this->post_type . '">Manage ' . $post_type_object->label ) . '</a></span>';
-    $ret .= '<br class="clear" />' . $this->desc;
     return $ret;
   }
 }

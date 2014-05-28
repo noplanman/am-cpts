@@ -85,13 +85,6 @@
   font-size: larger;
 }
 
-.meta-box-preview-image {
-  cursor: pointer;
-}
-.meta-box-clear-image-button {
-  font-style: italic;
-  font-size: smaller;
-}
 
 
 
@@ -245,6 +238,15 @@
   margin-bottom:3px;
 }
 
+.meta-box-preview-image {
+  cursor: pointer;
+}
+.meta-box-clear-image-button,
+.meta-box-clear-file-button {
+  font-style: italic;
+  font-size: smaller;
+}
+
 /* file */
 .meta-box-file-icon {
   display:block;
@@ -253,17 +255,20 @@
   background:url(../images/sprite.png) 0 0;
   float:left;
   margin-right:15px;
+  cursor: pointer;
 }
 
-  .meta-box-file-icon.checked {
-    background-position:-50px 0;
-  }
+.meta-box-file-icon.checked {
+  background-position:-50px 0;
+}
 
-  .meta-box-filename {
-    margin-bottom:5px;
-    display:block;
-    font-weight:bold;
-  }
+.meta-box-file-name,
+.meta-box-image-title {
+  display: inline-block;
+  width: 100%;
+/*    display:block;
+  font-weight:bold;*/
+}
 
 /* Select */
 .form-table select {

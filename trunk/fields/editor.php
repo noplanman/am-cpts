@@ -9,8 +9,18 @@ class AM_MBF_Editor extends AM_MBF {
   protected $is_repeatable = false;
 
   /**
-   * Return the field output.
-   * @return string
+   * Constructor to optionally define settings.
+   *
+   * @since 1.0.0
+   *
+   * @param null|array $settings Associative array of key-value pairs.
+   */
+  public function __construct( $settings = null ) {
+    $this->add_settings( $settings );
+  }
+
+  /**
+   * Check AM_MBF for description.
    */
   public function output() {
     $this->add_setting( 'textarea_name', $this->name );
@@ -18,8 +28,7 @@ class AM_MBF_Editor extends AM_MBF {
 
     ob_start();
     wp_editor( $this->value_old, $this->id, $this->get_settings() );
-    return ob_get_clean() .
-      '<br class="clear" />' . $this->desc; //???
+    return ob_get_clean();
   }
 }
 

@@ -7,12 +7,10 @@ class AM_MBF_PlainText extends AM_MBF {
   protected static $type = 'plaintext';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
-    $label = ( isset( $this->label ) && '' != $this->label ) ? '<h2>' . $this->label . '</h2>' : '';
-    return $label . $this->desc;
+    return ( isset( $this->label ) && '' != $this->label ) ? sprintf( '<h2>%1$s</h2>', esc_html( $this->label ) ) : '';
   }
 
   /**

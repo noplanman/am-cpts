@@ -8,12 +8,17 @@ class AM_MBF_Number extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
-    $size = ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 30;
-    return '<input type="number" name="' . $this->name . '" id="' . $this->id . '" value="' . intval( $this->value_old ) . '"' . $this->get_classes( 'regular-text' ) . ' size="' . $size . '"' . $this->get_data_atts() . ' />';
+    return sprintf( '<input type="number" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',
+      esc_attr( $this->id ),
+      esc_attr( $this->name ),
+      ( $this->value_old ) ? intval( $this->value_old ) : 0,
+      ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 30,
+      $this->get_classes( 'regular-text' ),
+      $this->get_data_atts()
+    );
   }
 }
 
