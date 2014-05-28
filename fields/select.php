@@ -5,24 +5,42 @@
  */
 class AM_MBF_Select extends AM_MBF {
   protected static $type = 'select';
-  protected $sanitizer = 'text';
+  protected $sanitizer = 'text_field';
 
   /**
-   * Return the field output.
-   * @return string
+   * Constructor to optionally define options.
+   *
+   * @since 1.0.0
+   *
+   * @param null|array $options Associative array of key-value pairs.
+   */
+  public function __construct( $options = null ) {
+    $this->add_options( $options );
+  }
+
+  /**
+   * Check AM_MBF for description.
    */
   public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select name="' . $this->name . '" id="' . $this->id . '"' . $multiple . $this->get_classes() . $this->get_data_atts() . '>';
+    $ret = sprintf( '<select name="%2$s" id="%1$s"%3$s%4$s%5$s>',
+      esc_attr( $this->id ),
+      esc_attr( $this->name ),
+      ( $this->is_multiple ) ? ' multiple="multiple"' : '',
+      $this->get_classes(),
+      $this->get_data_atts()
+    );
     if ( ! $this->is_multiple ) {
       $ret .= '<option value=""></option>'; // Select One
     }
     foreach ( $this->options as $opt_value => $opt_label ) {
-      $selected = selected( $this->value_old, $opt_value, false );
-      $ret .= '<option value="' . $opt_value . '"' . $selected . '>' . $opt_label . '</option>';
+      $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
+        esc_attr( $opt_value ),
+        esc_html( $opt_label ),
+        selected( $this->value_old, $opt_value, false )
+      );
     }
     $ret .= '</select>';
-    $ret .= '<br class="clear" />' . $this->desc;
+
     return $ret;
   }
 }
@@ -32,24 +50,46 @@ class AM_MBF_Select extends AM_MBF {
  */
 class AM_MBF_Chosen extends AM_MBF {
   protected static $type = 'chosen';
-  protected $sanitizer = 'text';
+  protected $sanitizer = 'text_field';
 
   /**
-   * Return the field output.
-   * @return string
+   * Constructor to optionally define options.
+   *
+   * @since 1.0.0
+   *
+   * @param null|array $options Associative array of key-value pairs.
+   */
+  public function __construct( $options = null ) {
+    $this->add_options( $options );
+  }
+
+  /**
+   * Check AM_MBF for description.
    */
   public function output() {
-    $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
-    $ret = '<select data-placeholder="' . __( 'Select One', 'textdomain' ) . '" name="' . $this->name . '" id="' . $this->id . '"' . $multiple . $this->get_classes( 'chosen' ) . $this->get_data_atts() . '>';
+    // Add placeholder value used by chosen.
+    $this->add_data( 'placeholder', __( 'Select One', 'am-cpts' ) );
+
+    $ret = sprintf( '<select name="%2$s" id="%1$s"%3$s%4$s%5$s>',
+      esc_attr( $this->id ),
+      esc_attr( $this->name ),
+      ( $this->is_multiple ) ? ' multiple="multiple"' : '',
+      $this->get_classes( 'chosen' ),
+      $this->get_data_atts()
+    );
+
     if ( ! $this->is_multiple ) {
       $ret .= '<option value=""></option>'; // Select One
     }
     foreach ( $this->options as $opt_value => $opt_label ) {
-      $selected = selected( $this->value_old, $opt_value, false );
-      $ret .= '<option value="' . $opt_value . '"' . $selected . '>' . $opt_label . '</option>';
+      $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
+        esc_attr( $opt_value ),
+        esc_html( $opt_label ),
+        selected( $this->value_old, $opt_value, false )
+      );
     }
     $ret .= '</select>';
-    $ret .= '<br class="clear" />' . $this->desc;
+
     return $ret;
   }
 }

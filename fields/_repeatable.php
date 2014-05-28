@@ -43,7 +43,6 @@ class AM_MBF_Repeatable extends AM_MBF {
 
     foreach ( $fields as $rep_field ) {
       if ( is_a( $rep_field, 'AM_MBF' ) && $rep_field->is_repeatable() ) {
-//        $rep_field->clean_data();
 
         // Set the new repeatable names and ids, set up as arrays for the repeatable field.
         $rep_field->add_data( 'id', $rep_field->get_id() );
@@ -58,10 +57,15 @@ class AM_MBF_Repeatable extends AM_MBF {
    * Saves the field data.
    */
   public function save( $post_id ) {
-    if ( isset( $this->_value_old ) && ( is_null( $this->_value_new ) || '' == $this->_value_new ) ) {
-      delete_post_meta( $post_id, $this->id, $this->_value_old );
-    } elseif ( $this->_value_new != $this->_value_old ) {
+    // Clean up _value_new.
+    if ( '' == $this->_value_new || array() == $this->_value_new ) {
+      $this->_value_new = null;
+    }
+
+    if ( isset( $this->_value_new ) && $this->_value_new != $this->_value_old ) {
       update_post_meta( $post_id, $this->id, $this->_value_new );
+    } else {
+      delete_post_meta( $post_id, $this->id, $this->_value_old );
     }
   }
 
@@ -111,7 +115,7 @@ class AM_MBF_Repeatable extends AM_MBF {
         if ( -1 == $i ) {
           // Prepare id and name for template fields.
           foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field->set_id( $this->id . '-' . $rep_field_id . '-empty' );
+            $rep_field->set_id( $rep_field->get_id() . '-empty' );
             $rep_field->set_name( '' );
           }
         } else {
@@ -251,9 +255,11 @@ class AM_MBF_Repeatable extends AM_MBF {
         $rep_fields = ( $is_empty_template ) ? $this->repeatable_fields : $values_old[ $i ];
 
         foreach ( $rep_fields as $rep_field ) {
+          $rep_field->is_being_repeated( true );
           $field_outputs .= '<label class="meta-box-field-label" for="' . $rep_field->get_id() . '">' . $rep_field->get_label() . '</label>';
           $field_outputs .= $rep_field->output();
-          $field_outputs .= '<br class="clear" /><span class="description">' . $rep_field->get_desc() . '</span>';
+          $field_outputs .= ( 'plaintext' != $rep_field->get_type() ) ? '<br class="clear" />' : '';
+          $field_outputs .= '<span class="description">' . $rep_field->get_desc() . '</span>';
         }
         $field_outputs .= '
             </td>
@@ -275,7 +281,7 @@ class AM_MBF_Repeatable extends AM_MBF {
           <thead>
             <tr>
               <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'textdomain' ) . '</th>
+              <th>' . __( 'Repeatable Fields', 'am-cpts' ) . '</th>
               <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top"></a></th>
             </tr>
           ' . $empty_fields_template . '
@@ -286,14 +292,14 @@ class AM_MBF_Repeatable extends AM_MBF {
           <tfoot>
             <tr>
               <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'textdomain' ) . '</th>
+              <th>' . __( 'Repeatable Fields', 'am-cpts' ) . '</th>
               <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom"></a></th>
             </tr>
           </tfoot>
         </table>
       ';
     } else {
-      return __( 'No repeatable fields assigned!', 'text-domain' );
+      return __( 'No repeatable fields assigned!', 'am-cpts' );
     }
   }
 }

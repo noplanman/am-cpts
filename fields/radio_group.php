@@ -6,33 +6,51 @@
  */
 class AM_MBF_RadioGroup extends AM_MBF {
   protected static $type = 'radio_group';
-  protected $sanitizer = 'text';
+  protected $sanitizer = 'text_field';
 
   /**
-   * Return the field output.
-   * @return string
+   * Constructor to optionally define options.
+   *
+   * @since 1.0.0
+   *
+   * @param null|array $options Associative array of key-value pairs.
+   */
+  public function __construct( $options = null ) {
+    $this->add_options( $options );
+  }
+
+  /**
+   * Check AM_MBF for description.
    */
   public function output() {
-    // Backup id.
-    $id_bkp = $this->id;
+    $ret = '<ul class="meta-box-items">';
 
-    $ret .= '<ul class="meta-box-items">';
     foreach ( $this->options as $opt_value => $opt_label ) {
-      $checked = checked( $this->value_old, $opt_value, false );
-      $this->id .= $this->id . '-' . $opt_value; //???
+      // Add option value before iteration id.
+      $new_id = '';
+      if ( $this->is_being_repeated ) {
+        $id_parts = explode( '-', $this->id );
+        array_splice( $id_parts, -1, 0, $opt_value );
+        $new_id = implode( '-', $id_parts );
+      } else {
+        $new_id = $this->id . '-' . $opt_value;
+      }
 
-      $ret .= '
-        <li>
-          <input type="radio" name="' . $this->name . '" id="' . $this->id . '" value="' . esc_attr( $opt_value ) . '" ' . $checked . $this->get_classes() . $this->get_data_atts() . ' />
-          <label for="' . $this->id . '">' . $opt_label . '</label>
-        </li>
-      ';
+      // Add option value to data as subid, cause it will be used by jQuery to correctly rewrite ids and names.
+      $this->add_data( 'subid', $opt_value );
+
+      $ret .= sprintf( '<li><input type="radio" value="%4$s" name="%2$s" id="%1$s"%5$s%6$s%7$s />&nbsp;<label for="%1$s">%3$s</label></li>',
+        esc_attr( $new_id ),
+        esc_attr( $this->name ),
+        esc_html( $opt_label ),
+        esc_attr( $opt_value ),
+        checked( $this->value_old, $opt_value, false ),
+        $this->get_classes(),
+        $this->get_data_atts()
+      );
     }
-    $ret .= '</ul>';
-    $ret .= '<br class="clear" />' . $this->desc; //???
 
-    // Revert id.
-    $this->id = $id_bkp;
+    $ret .= '</ul>';
 
     return $ret;
   }

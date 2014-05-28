@@ -8,16 +8,16 @@ class AM_MBF_File extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
-    $class_icon = 'meta-box-file-icon';
+    $class_icon_checked = '';
+    $file_id = isset( $this->value_old ) ? intval( $this->value_old ) : 0;
     $file_url = '';
 
     $hide_upload_button = $hide_clear_button = ' style="display:none;"';
-    if ( isset( $this->value_old ) && $file_url = esc_url( wp_get_attachment_url( intval( $this->value_old ) ) ) ) {
-      $class_icon .= ' checked';
+    if ( $file_url = wp_get_attachment_url( $file_id ) ) {
+      $class_icon_checked = ' checked';
       $hide_clear_button = '';
     } else {
       $hide_upload_button = '';
@@ -25,18 +25,31 @@ class AM_MBF_File extends AM_MBF {
 
     // Text used by wp.media frame.
     $wp_media_data = '
-      data-title="' . esc_attr__( 'Choose a File', 'textdomain' ) . '"
-      data-button="' . esc_attr__( 'Use this File', 'textdomain' ) . '"
+      data-title="' . esc_attr__( 'Choose a File', 'am-cpts' ) . '"
+      data-button="' . esc_attr__( 'Use this File', 'am-cpts' ) . '"
     ';
 
-    return '
-      <div' . $this->get_classes( 'meta-box-file' ) . '>
-        <input name="' . $this->name . '" type="hidden" class="meta_box_upload_file" value="' . intval( $this->value ) . '"' . $this->get_data_atts() . ' />
-        <span class="' . $class_icon . '"></span>
-        <span class="meta-box-filename">' . $file_url . '</span>
-        <a href="#" class="meta-box-upload-file-button button" rel="' . get_the_ID() . '"' . $hide_upload_button . $wp_media_data . '>' . __( 'Choose File', 'textdomain' ) . '</a>
-        <a href="#" class="meta-box-clear-file-button"' . $hide_clear_button . '>' . __( 'Remove File', 'textdomain') . '</a>
-      </div>';
+    return sprintf( '
+      <div%10$s>
+        <input name="%2$s" type="hidden" class="meta-box-upload-file" value="%1$s"%11$s />
+        <span class="meta-box-file-icon%4$s"></span>
+        <a href="#" class="meta-box-upload-file-button button" rel="%3$s"%5$s%11$s>%7$s</a>
+        <a href="#" class="meta-box-clear-file-button"%6$s>%8$s</a>
+        <span class="meta-box-file-name"%6$s>%9$s</span>
+      </div>',
+      $file_id,
+      esc_attr( $this->name ),
+      get_the_ID(),
+      $class_icon_checked,
+      $hide_upload_button,
+      $hide_clear_button,
+      esc_html__( 'Choose File', 'am-cpts' ),
+      esc_html__( 'Remove File', 'am-cpts'),
+      esc_url( $file_url ),
+      $this->get_classes( 'meta-box-file' ),
+      $this->get_data_atts(),
+      $wp_media_data
+    );
   }
 }
 
