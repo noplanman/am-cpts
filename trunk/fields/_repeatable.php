@@ -2,14 +2,17 @@
 
 /**
  * A repeatable field of other fields.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Repeatable extends AM_MBF {
   protected static $type = 'repeatable';
   protected $is_repeatable = false;
 
-  //TODO: instead of these variables, have an array with the "real" repeatable field objects.
   /**
    * The old value as it is in the database.
+   *
+   * @todo Instead of this variable, have an array with the "real" repeatable field objects.
    *
    * @since 1.0.0
    *
@@ -20,6 +23,8 @@ class AM_MBF_Repeatable extends AM_MBF {
   /**
    * The new value as it will be saved to the database.
    *
+   * @todo Instead of this variable, have an array with the "real" repeatable field objects.
+   *
    * @since 1.0.0
    *
    * @var array
@@ -28,6 +33,8 @@ class AM_MBF_Repeatable extends AM_MBF {
 
   /**
    * Add a field to this repeatable field.
+   *
+   * @since 1.0.0
    *
    * @param AM_MBF|array  $fields Object or array of AM_MBF to add to this repeatable field.
    */
@@ -54,23 +61,26 @@ class AM_MBF_Repeatable extends AM_MBF {
   }
 
   /**
-   * Saves the field data.
+   * Saves the field data as meta data for the passed post id.
+   *
+   * @since 1.0.0
+   *
+   * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
-    // Clean up _value_new.
-    if ( '' == $this->_value_new || array() == $this->_value_new ) {
-      $this->_value_new = null;
-    }
-
-    if ( isset( $this->_value_new ) && $this->_value_new != $this->_value_old ) {
-      update_post_meta( $post_id, $this->id, $this->_value_new );
-    } else {
+    if ( is_null( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
+      // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->_value_old );
+    } elseif ( $this->_value_new != $this->_value_old ) {
+      // Add / update the post meta data.
+      update_post_meta( $post_id, $this->id, $this->_value_new );
     }
   }
 
   /**
    * Sanitize the new value of this field and all repeatable fields.
+   *
+   * @since 1.0.0
    */
   public function sanitize() {
     // Check which values have to be sanitized, the old or new ones.
@@ -143,7 +153,7 @@ class AM_MBF_Repeatable extends AM_MBF {
             $rep_field->set_id( $rep_field_id . '-' . $i );
             $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
 
-            $new_values[] = $rep_field;
+            $new_values[ $rep_field_id ] = $rep_field;
           }
           // Only add to values if an old value has been set.
           if ( $is_set ) {
@@ -222,8 +232,7 @@ class AM_MBF_Repeatable extends AM_MBF {
   }
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
 

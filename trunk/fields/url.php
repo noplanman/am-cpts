@@ -2,6 +2,8 @@
 
 /**
  * A simple url entry field.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Url extends AM_MBF {
   protected static $type = 'url';

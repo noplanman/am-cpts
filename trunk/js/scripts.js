@@ -1,11 +1,12 @@
 jQuery(document).ready(function($) {
 
-  // the upload image button, saves the id and outputs a preview of the image
+  // WP Media window to upload / choose image.
   var image_frame;
 
   // The div which holds all image fields of the current action.
   var img_div;
 
+  // the upload image button, saves the id and outputs a preview of the image
   $('.meta-box-upload-image-button, .meta-box-preview-image').live('click', function(e) {
     e.preventDefault();
 
@@ -71,12 +72,13 @@ jQuery(document).ready(function($) {
   });
 
 
-  // the file image button, saves the id and outputs the file name
+  // WP Media window to upload / choose file.
   var file_frame;
 
   // The div which holds all file fields of the current action.
   var file_div;
 
+  // the file image button, saves the id and outputs the file name
   $('.meta-box-upload-file-button, .meta-box-file-icon').live( 'click', function(e) {
     e.preventDefault();
 
@@ -160,7 +162,6 @@ jQuery(document).ready(function($) {
 
 
 
-
   // Set up date pickers.
   $('.mbf-type-date').live('focus', function(e) {
     $(this).datepicker({
@@ -169,16 +170,61 @@ jQuery(document).ready(function($) {
   });
 
 
+  // Set up sliders.
+  $('.mbf-type-slider').each(function(index, el) {
+    var hiddeninput = $(el).next('input');
+
+    $(el).slider({
+      min: hiddeninput.data("min"),
+      max: hiddeninput.data("max"),
+      step: hiddeninput.data("step"),
+      values: hiddeninput.data("values"),
+      range: hiddeninput.data("range"),
+
+      create: function(event, ui) {
+        // Create all labels and add them to their respective handle.
+        var handles = $('.ui-slider-handle', this);
+        for(var i = 0;i < handles.length;i++) {
+          $("<span></span>")
+            .html($(this).slider("values", i))
+            .appendTo(handles[i])
+            .position({
+              my: "center top",
+              at: "center bottom+1",
+              of: handles[i],
+              collision: "none"
+            });
+        }
+      },
+      slide: function( event, ui ) {
+        $('span', ui.handle)
+          .html(ui.value)
+          .position({
+            my: "center top",
+            at: "center bottom+1",
+            of: ui.handle,
+            collision: "none"
+          });
+        $(hiddeninput).val(ui.values);
+      }
+    });
+  });
+
+
+
 
   // Update all ids for repeatable fields in a given tbody.
   function update_repeatable_ids(tbody) {
-    var rows = $(tbody).find('tr');
+    var rows = $('tr', tbody);
     for(var i = 0;i < rows.length;i++) {
       var row = rows[i];
-      $(row).find('input, textarea, select').each(function(index, el) {
+      $('input, textarea, select', row).each(function(index, el) {
         var id = $(el).data('id');
         var subid = $(el).data('subid');
-        subid += ('' != subid) ? '-' : '';
+        if(subid !== undefined)
+          subid += ('' != subid) ? '-' : '';
+        else
+          subid = '';
         var iid = id + '-' + subid + i;
         var parent = $(el).data('parent');
         $(el).attr('name', parent + '[' + i +'][' + id + ']' + ( ('checkbox' == $(el).attr('type')) ? '[]' : '' ));
@@ -186,7 +232,7 @@ jQuery(document).ready(function($) {
 
         // Replace default 'empty' class with the newly assigned id.
         $(el).attr('class', function(i, c){
-          return c.replace(/\bmbf-id-\S+-empty\b/g, 'mbf-id-' + iid);
+          return ( c != undefined) ? c.replace(/\bmbf-id-\S+-empty\b/g, 'mbf-id-' + iid) : c;
         });
 
         /* To keep in mind!
@@ -195,19 +241,21 @@ jQuery(document).ready(function($) {
         */
 
         // The repeatable label should show to the first field.
-//        $(row).find('label').attr('for', iid);
+        //$(row).find('label').attr('for', iid);
 
-//        $($(el).attr("tagName").toLowerCase() + ' + label').attr('for', iid);
+        //$($(el).attr("tagName").toLowerCase() + ' + label').attr('for', iid);
 
-        $(el).prev('label').attr('for', iid);
-        $(el).next('label').attr('for', iid);
+        // Set the labels to show to the input directly next to them.
+        var yep1 = $(el).prev('label').attr('for', iid);
+        var yep2 = $(el).next('label').attr('for', iid);
+        var bp;
       });
     }
   }
 
   function add_the_empty_template(table) {
-    var tbody = $(table).find('tbody');
-    $(table).find('.empty-fields-template')
+    var tbody = $('tbody', table);
+    $('.empty-fields-template', table)
       .clone()
       .appendTo(tbody)
       .removeClass('empty-fields-template')
@@ -216,7 +264,7 @@ jQuery(document).ready(function($) {
   }
 
   $('table.meta-box-repeatable').each(function(index, table) {
-    if ( 0 == $(table).find('tbody tr').length ) {
+    if ( 0 == $('tbody tr', table).length ) {
       add_the_empty_template( table );
     }
   });
@@ -225,8 +273,8 @@ jQuery(document).ready(function($) {
     e.preventDefault();
 
     var table = $(this).closest('table');
-    var tbody = $(table).find('tbody');
-    var new_row = $(table).find('.empty-fields-template').clone();
+    var tbody = $('tbody', table);
+    var new_row = $('.empty-fields-template', table).clone();
 
     if ( 'top' == $(this).data('position') ) {
       $(new_row).prependTo(tbody);
@@ -234,10 +282,10 @@ jQuery(document).ready(function($) {
       $(new_row).appendTo(tbody);
     }
 
-    new_row.removeClass('empty-fields-template').show();
+    $(new_row).removeClass('empty-fields-template').show();
 
     if (!!$.prototype.chosen) {
-      $(new_row).find('select.chosen')
+      $('select.chosen', new_row)
         .chosen({allow_single_deselect: true});
     }
 
@@ -275,27 +323,27 @@ jQuery(document).ready(function($) {
    * Store object of all radio buttons within element el that are checked.
    */
   function store_radio(el){
-      var radioshack = {};
-      $('input[type="radio"]', el).each(function(){
-          if($(this).is(':checked')){
-              radioshack[$(this).attr('name')] = $(this).val();
-          }
-      });
-      $(document).attr('data-radioshack',radioshack);
+    var radioshack = {};
+    $('input[type="radio"]', el).each(function(){
+      if($(this).is(':checked')){
+        radioshack[$(this).attr('name')] = $(this).val();
+      }
+    });
+    $(document).attr('data-radioshack',radioshack);
   }
 
   /**
   * Restore all radio buttons that were checked.
   */
   function reclick_radio(){
-      // get object of checked radio button names and values
-      var radios = $(document).data('radioshack');
-      //step thru each object element and trigger a click on it's corresponding radio button
-      for(key in radios){
-          $('input[name="'+key+'"]').filter('[value="'+radios[key]+'"]').trigger('click');
-      }
-      // unbind the event listener on .wrap  (prevents clicks on inputs from triggering function)
-      $('.meta-box-repeatable .ui-sortable').unbind('mouseup');
+    // get object of checked radio button names and values
+    var radios = $(document).data('radioshack');
+    //step thru each object element and trigger a click on it's corresponding radio button
+    for(key in radios){
+      $('input[name="'+key+'"]').filter('[value="'+radios[key]+'"]').trigger('click');
+    }
+    // unbind the event listener on .wrap  (prevents clicks on inputs from triggering function)
+    $('.meta-box-repeatable .ui-sortable').unbind('mouseup');
   }
 
 

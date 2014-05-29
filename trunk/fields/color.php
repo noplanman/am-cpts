@@ -1,8 +1,9 @@
 <?php
 
-// TODO: use wp-color-picker?
 /**
  * A color picker.
+ *
+ * @todo Use wp-color-picker?
  *
  * @since 1.0.0
  */
@@ -17,10 +18,7 @@ class AM_MBF_Color extends AM_MBF {
     // Check which value has been sanitized, the old or new one.
     $sanitized_value = ( $this->is_saving ) ? $this->value_new : $this->value_old;
 
-    if ( is_null( $sanitized_value ) || '' == $sanitized_value ) {
-      // Default 'empty' color.
-      $sanitized_value = '#';
-    } elseif ( 3 === strlen( $sanitized_value ) ) {
+    if ( 3 === strlen( $sanitized_value ) ) {
       // Convert from short to long form (i.e: '0f0' => '00ff00').
       $sanitized_value = sprintf( '%1$d%1$d%2$d%2$d%3$d%3$d',
         $sanitized_value[0],
@@ -47,7 +45,7 @@ class AM_MBF_Color extends AM_MBF {
     return sprintf( '<input type="text" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s /><div id="colorpicker-%1$s"></div>',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      esc_attr( $this->value_old ),
+      ( '' != $this->value_old ) ? esc_attr( $this->value_old ) : '#',
       ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 10,
       $this->get_classes(),
       $this->get_data_atts()

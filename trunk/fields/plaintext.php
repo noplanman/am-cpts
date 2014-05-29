@@ -2,6 +2,8 @@
 
 /**
  * Output plain text as an h2 header. Use this to split the meta box into seperate sections.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_PlainText extends AM_MBF {
   protected static $type = 'plaintext';
@@ -14,7 +16,7 @@ class AM_MBF_PlainText extends AM_MBF {
   }
 
   /**
-   * Override default save function.
+   * Check AM_MBF for description.
    */
   public function save( $post_id ) {
     // Nothing to be saved...

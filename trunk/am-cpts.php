@@ -27,21 +27,21 @@ require_once 'class-am-mbf.php';
 class Tax_Note_Styles extends AM_Tax {
   public function __construct() {
     $labels = array(
-      'name'          => _x( 'Styles', 'Taxonomy plural name', 'am-cpts' ),
-      'singular_name'      => _x( 'Style', 'Taxonomy singular name', 'am-cpts' ),
-      'search_items'      => __( 'Search Styles', 'am-cpts' ),
-      'popular_items'      => __( 'Popular Styles', 'am-cpts' ),
-      'all_items'        => __( 'All Styles', 'am-cpts' ),
-      'parent_item'      => __( 'Parent Style', 'am-cpts' ),
-      'parent_item_colon'    => __( 'Parent Style', 'am-cpts' ),
-      'edit_item'        => __( 'Edit Style', 'am-cpts' ),
-      'update_item'      => __( 'Update Style', 'am-cpts' ),
-      'add_new_item'      => __( 'Add New Style', 'am-cpts' ),
-      'new_item_name'      => __( 'New Style Name', 'am-cpts' ),
-      'add_or_remove_items'  => __( 'Add or remove Styles', 'am-cpts' ),
-      'choose_from_most_used'  => __( 'Choose from most used Styles', 'am-cpts' ),
-      'menu_name'        => __( 'Styles', 'am-cpts' ),
-      'not_found' => __( 'No styles found', 'am-cpts' )
+      'name'                  => _x( 'Styles', 'Taxonomy plural name', 'am-cpts' ),
+      'singular_name'         => _x( 'Style', 'Taxonomy singular name', 'am-cpts' ),
+      'search_items'          => __( 'Search Styles', 'am-cpts' ),
+      'popular_items'         => __( 'Popular Styles', 'am-cpts' ),
+      'all_items'             => __( 'All Styles', 'am-cpts' ),
+      'parent_item'           => __( 'Parent Style', 'am-cpts' ),
+      'parent_item_colon'     => __( 'Parent Style', 'am-cpts' ),
+      'edit_item'             => __( 'Edit Style', 'am-cpts' ),
+      'update_item'           => __( 'Update Style', 'am-cpts' ),
+      'add_new_item'          => __( 'Add New Style', 'am-cpts' ),
+      'new_item_name'         => __( 'New Style Name', 'am-cpts' ),
+      'add_or_remove_items'   => __( 'Add or remove Styles', 'am-cpts' ),
+      'choose_from_most_used' => __( 'Choose from most used Styles', 'am-cpts' ),
+      'menu_name'             => __( 'Styles', 'am-cpts' ),
+      'not_found'             => __( 'No styles found', 'am-cpts' )
     );
 
     $args = array(
@@ -131,8 +131,9 @@ $new_tax->register();*/
 
 $mb = new AM_MB( 'metabox1', 'First Metabox' );
 $rep = AM_MBF::create_batch(
-//  array('color','pc1','post checkboxes', 'some description...'),
-  array('checkbox_group','pc7','post checkboxes', 'some description...', array('key1'=>'val1','key2'=>'val2')),
+//  array('slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3)),
+  array('color','pc1','post checkboxes', 'some description...'),
+//  array('checkbox_group','pc7','post checkboxes', 'some description...', array('key1'=>'val1','key2'=>'val2')),
   array( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' )
 /*  array( 'plaintext', 'plaintext1', 'Just some plain text', 'and the description' ),
   array( 'text','text1','a simple text input', 'text description' ),
@@ -145,20 +146,21 @@ $rep = AM_MBF::create_batch(
 if(isset($rep[1])) $rep[1]->add_field( clone($rep[0]) );
 
 
-//$mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
+$mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
 
 //$rep = AM_MBF::create('repeatable', 'rep1', 'Rep nr.1', 'desc...' );
 //$rep->add_field( AM_MBF::create('radio_group','pc6','post checkboxes', 'some description...', array('key1'=>'val1','key2'=>'val2')) );
 //$rep->add_field( AM_MBF::create('color','pc1','post checkboxes', 'some description...'));
 
-//$f = AM_MBF::create( 'text','txt1','a checkbox field!!','some description...' );
+$mb2->add_field( AM_MBF::create( 'text','txt1','a text field!!','some description...' ) );
+$mb2->add_field( AM_MBF::create( 'checkbox','cb1','a checkbox field!!','some description...' ) );
 //$f2 = AM_MBF::create('text','text1','a simple text input');
 //$rep->add_field($f);
 //$mb->add_field($f2);
 //$f->add_settings(array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3));
 //$f->set_post_type( 'pages' );
 
-//$mb2->add_field();
+
 
 //$f->add_options( array('one'=>'first','two'=>'second','three'=>'third','four'=>'fourth','five'=>'fifth') );
 //$f->is_multiple(true);
@@ -168,7 +170,7 @@ $mb->add_field( $rep );
 
 
 //fu($mb);
-$cpt_note->assign_meta_box( array( $mb, $mb2 = null ) );
+$cpt_note->assign_meta_box( array( $mb, $mb2 ) );
 
 $cpt_note->register();
 

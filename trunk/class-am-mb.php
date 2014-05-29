@@ -278,17 +278,29 @@ class AM_MB {
   }
 
   /**
-   * Register the meta box.
+   * Load meta data for all field of this meta box.
+   *
+   * This need to be a seperate function, to allow the data to be loaded outside wp-admin.
    *
    * @since 1.0.0
    */
-  final public function _register() {
+  final public function load_data() {
     // Set all fields values and sanitize before output.
     foreach ( $this->fields as $field ) {
       $field->set_value_old( get_post_meta( get_the_ID(), $field->get_id(), true ) );
       $field->is_saving( false );
       $field->sanitize();
     }
+  }
+
+  /**
+   * Register the meta box.
+   *
+   * @since 1.0.0
+   */
+  final public function _register() {
+    // Load meta data for this meta box.
+    $this->load_data();
 
     add_meta_box( $this->id, $this->title, array( $this, '_output' ), get_post_type(), $this->context, $this->priority );
   }

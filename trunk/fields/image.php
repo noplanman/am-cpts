@@ -2,6 +2,10 @@
 
 /**
  * An image selector / uploader.
+ *
+ * @todo Multiple image selector.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Image extends AM_MBF {
   protected static $type = 'image';
