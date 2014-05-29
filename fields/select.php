@@ -2,6 +2,8 @@
 
 /**
  * A drop down.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Select extends AM_MBF {
   protected static $type = 'select';
@@ -47,6 +49,8 @@ class AM_MBF_Select extends AM_MBF {
 
 /**
  * A 'chosen' drop down.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Chosen extends AM_MBF {
   protected static $type = 'chosen';

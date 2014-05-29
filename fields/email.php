@@ -2,6 +2,8 @@
 
 /**
  * A simple email entry field.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Email extends AM_MBF {
   protected static $type = 'email';

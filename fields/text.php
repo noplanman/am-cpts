@@ -2,6 +2,8 @@
 
 /**
  * A simple text entry field.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Text extends AM_MBF {
   protected static $type = 'text';

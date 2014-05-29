@@ -1,8 +1,9 @@
 <?php
 
-// TODO: get data atts need to be compatible with options, get_data_atts() on radio elements?
 /**
  * A simple radio group.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_RadioGroup extends AM_MBF {
   protected static $type = 'radio_group';

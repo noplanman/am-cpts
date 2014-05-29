@@ -2,7 +2,10 @@
 
 /**
  * A simple textarea entry field.
- * @todo $size for cols and rows.
+ *
+ * @todo $size for cols and rows (i.e. $size="<cols>,<rows>").
+ *
+ * @since 1.0.0
  */
 class AM_MBF_TextArea extends AM_MBF {
   protected static $type = 'textarea';

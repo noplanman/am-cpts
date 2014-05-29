@@ -2,6 +2,8 @@
 
 /**
  * A simple number entry field.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Number extends AM_MBF {
   protected static $type = 'number';

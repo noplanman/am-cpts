@@ -277,6 +277,7 @@ class AM_CPT extends AM_CPT_Tax {
    * Taxonomies assigned to this CPT.
    *
    * @since 1.0.0
+   *
    * @var array
    */
   protected $taxonomies = array();
@@ -285,9 +286,33 @@ class AM_CPT extends AM_CPT_Tax {
    * Meta boxes assigned to this CPT.
    *
    * @since 1.0.0
+   *
    * @var array
    */
   protected $meta_boxes = array();
+
+  /**
+   * An array of all created AM_CPT.
+   *
+   * @since 1.0.0
+   *
+   * @var array
+   */
+  private static $_all_cpts = array();
+
+  /**
+   * Get any already created AM_CPT.
+   *
+   * @since 1.0.0
+   *
+   * @param  null|string $cpt_slug Slug of the AM_CPT to get. If null, the current post type is used.
+   * @return null|AM_CPT           AM_CPT if the requested AM_CPT exists, else null.
+   */
+  public static function get_cpt( $cpt_slug = null ) {
+    $cpt_slug = ( isset( $cpt_slug ) ) ? $cpt_slug : get_post_type();
+
+    return ( array_key_exists( $cpt_slug, self::$_all_cpts ) ) ? self::$_all_cpts[ $cpt_slug ] : null;
+  }
 
   /**
    * Create new AM_CPT object.
@@ -306,6 +331,9 @@ class AM_CPT extends AM_CPT_Tax {
     $this->assign_taxonomy( $taxonomies );
     $this->assign_meta_box( $meta_boxes );
     $this->set_priority( $priority );
+
+    // Save this CPT to $all_cpts, so it can easily be fetched again when required.
+    self::$_all_cpts[ $slug ] = $this;
   }
 
   /**
@@ -420,14 +448,58 @@ class AM_CPT extends AM_CPT_Tax {
   }
 
   /**
-   * Get all meta boxes assigned to this CPT.
+   * Get meta boxes assigned to this CPT.
    *
    * @since 1.0.0
    *
+   * @param string|array $meta_boxes Meta box / boxes to get from this CPT. Single key, comma seperated keys, array of keys.
    * @return array List of all AM_MB objects.
    */
-  final public function get_meta_boxes() {
-    return $this->meta_boxes;
+  final public function get_meta_boxes( $meta_boxes = null) {
+
+    $ret_meta_boxes = array();
+
+    if ( is_null( $meta_boxes ) ) {
+      // Return them all.
+      $ret_meta_boxes = $this->meta_boxes;
+    } else {
+
+      // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
+      if ( ! is_array( $meta_boxes ) ) {
+        $meta_boxes = explode( ',', $meta_boxes );
+      }
+
+      // Trim all entries.
+      $meta_boxes = array_map( 'trim', $meta_boxes );
+
+      // Return only the requested meta boxes.
+      $ret_meta_boxes = array_intersect_key( $this->meta_boxes, array_flip( $meta_boxes ) );
+    }
+
+    // Load meta data for all meta boxes to be returned.
+    foreach ( $ret_meta_boxes as $meta_box ) {
+      $meta_box->load_data();
+    }
+
+    // Return the requested meta boxes.
+    return $ret_meta_boxes;
+  }
+
+  /**
+   * Get the selected meta box assigned to this CPT.
+   *
+   * @since 1.0.0
+   *
+   * @param string $meta_box ID of the meta box to get.
+   * @return AM_MB The requested meta box, if it exists.
+   */
+  final public function get_meta_box( $meta_box ) {
+    if ( array_key_exists( $meta_box, $this->meta_boxes ) ) {
+      $ret_meta_box = $this->meta_boxes[ $meta_box ];
+      $ret_meta_box->load_data();
+      return $ret_meta_box;
+    }
+    return null;
   }
 
   /**
@@ -496,101 +568,11 @@ class AM_CPT extends AM_CPT_Tax {
   }
 
   /**
-   * Adds JS to the admin head for special fields with extra requirements.
-   *
-   * @since 1.0.0
-   */
-  final public function _admin_head() {
-    global $pagenow;
-    if ( in_array( $pagenow, array( 'post-new.php', 'post.php' ) ) && get_post_type() == $this->slug ) {
-      $used_types = $this->used_meta_box_types();
-
-      if ( array_intersect( array( 'slider' ), $used_types ) ) {
-
-        $js_out = '<script type="text/javascript">
-          jQuery(function( $) {';
-
-        foreach ( $this->meta_boxes as $meta_box ) {
-          foreach ( $meta_box->get_fields() as $field ) {
-    // TODO: move to fields themselves, decouple!
-    // TODO: repeatables!
-            switch( $field->get_type() ) {
-              // Slider.
-              case 'slider' :
-
-                $min = $field->get_setting( 'min', 0 );
-                $max = $field->get_setting( 'max', 100 );
-                $step = $field->get_setting( 'step', 1 );
-                $range = ( $field->get_setting( 'range', false ) ) ? 'true' : 'false';
-                $handles = $field->get_setting( 'handles', 1 );
-
-                $values = $field->get_value_old();
-
-                if ( ! is_array( $values ) ) {
-                  $values = explode( ',', $values );
-                }
-                while ( count( $values ) < intval( $handles ) ) {
-                  $values[] = $min;
-                }
-                $values = implode( ',', $values );
-
-                $js_out .= '
-                  $( "#' . $field->get_id() . '-slider" ).slider({
-                    min:' . $min . ',
-                    max:' . $max . ',
-                    step:' . $step . ',
-                    values:[' . $values . '],
-                    range:' . $range . ',
-
-                    create: function(event, ui) {
-                      // Create all labels and add them to their respective handle.
-                      var handles = $(this).find(".ui-slider-handle");
-                      for(var i = 0;i < handles.length;i++) {
-                        $("<span></span>")
-                          .html($(this).slider("values", i))
-                          .appendTo(handles[i])
-                          .position({
-                            my: "center top",
-                            at: "center bottom+1",
-                            of: handles[i],
-                            collision: "none"
-                          });
-                      }
-                    },
-                    slide: function( event, ui ) {
-                      $(ui.handle).find("span")
-                        .html(ui.value)
-                        .position({
-                          my: "center top",
-                          at: "center bottom+1",
-                          of: ui.handle,
-                          collision: "none"
-                        });
-                      $("#' . $field->get_id() . '").val(ui.values);
-                    }
-                  });
-                ';
-              break;
-            }
-          }
-        }
-
-        $js_out .= '
-            });
-          </script>
-        ';
-        echo $js_out;
-      }
-    }
-  }
-
-  /**
    * Add all actions related to registering this custom post type.
    */
   final public function register() {
     // Metabox related!
     add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
-    add_action( 'admin_head',  array( $this, '_admin_head' ) );
 
 
     // Set the 'taxonomy' argument for the CPT.

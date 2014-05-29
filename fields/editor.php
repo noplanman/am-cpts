@@ -2,6 +2,8 @@
 
 /**
  * A TinyMCE editor.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_Editor extends AM_MBF {
   protected static $type = 'editor';

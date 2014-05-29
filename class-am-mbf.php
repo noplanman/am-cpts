@@ -965,10 +965,10 @@ abstract class AM_MBF {
    *
    * @since 1.0.0
    *
-   * @param integer $post_id ID of the current post being saved.
+   * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
-    if ( isset( $this->value_old ) && ( is_null( $this->value_new ) || '' == $this->value_new ) ) {
+    if ( is_null( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
       // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->value_old );
     } elseif ( $this->value_new != $this->value_old ) {

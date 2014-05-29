@@ -2,6 +2,8 @@
 
 /**
  * A file selector / uploader.
+ *
+ * @since 1.0.0
  */
 class AM_MBF_File extends AM_MBF {
   protected static $type = 'file';
