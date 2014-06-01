@@ -6,7 +6,14 @@
  * @since 1.0.0
  */
 class AM_MBF_Select extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'select';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field';
 
   /**
@@ -37,7 +44,7 @@ class AM_MBF_Select extends AM_MBF {
     foreach ( $this->options as $opt_value => $opt_label ) {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $opt_value ),
-        esc_html( $opt_label ),
+        $opt_label,
         selected( $this->value_old, $opt_value, false )
       );
     }
@@ -53,7 +60,14 @@ class AM_MBF_Select extends AM_MBF {
  * @since 1.0.0
  */
 class AM_MBF_Chosen extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'chosen';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field';
 
   /**
@@ -88,7 +102,7 @@ class AM_MBF_Chosen extends AM_MBF {
     foreach ( $this->options as $opt_value => $opt_label ) {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $opt_value ),
-        esc_html( $opt_label ),
+        $opt_label,
         selected( $this->value_old, $opt_value, false )
       );
     }

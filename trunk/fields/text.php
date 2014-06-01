@@ -6,7 +6,14 @@
  * @since 1.0.0
  */
 class AM_MBF_Text extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'text';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field';
 
   /**

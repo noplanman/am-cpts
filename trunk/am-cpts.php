@@ -2,14 +2,14 @@
 
 /**
  * @package AM_CPTS
- * @version 1.0
+ * @version 1.0.0
  */
 /*
 Plugin Name: AM CPTS
 Plugin URI:
 Description: Create custom post types, taxonomies and meta boxes really easily.
 Author: Armando Lüscher
-Version: 1.0
+Version: 1.0.0
 Author URI: http://armyman.ch/
 */
 
@@ -20,6 +20,20 @@ Author URI: http://armyman.ch/
 require_once 'class-am-cpt-tax.php';
 require_once 'class-am-mb.php';
 require_once 'class-am-mbf.php';
+
+
+
+
+
+
+
+/*
+
+
+JUST FOR TESTING!!!!
+
+
+ */
 
 
 
@@ -130,31 +144,39 @@ $new_tax->register();*/
 
 
 $mb = new AM_MB( 'metabox1', 'First Metabox' );
-$rep = AM_MBF::create_batch(
+//$rep = AM_MBF::create_batch(
+//  array( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' )
+
 //  array('slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3)),
-  array('color','pc1','post checkboxes', 'some description...'),
-//  array('checkbox_group','pc7','post checkboxes', 'some description...', array('key1'=>'val1','key2'=>'val2')),
-  array( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' )
+//  array('color','pc1','post checkboxes', 'some description...'),
+  //array('image','pc3','post checkboxes', 'some description...')
 /*  array( 'plaintext', 'plaintext1', 'Just some plain text', 'and the description' ),
   array( 'text','text1','a simple text input', 'text description' ),
   array( 'tel','tel1','a simple tel input', 'tel description' ),
   array( 'url','url1','a simple url input', 'url description' ),
   array( 'email','email1','a simple email input', 'email description' ),
   array( 'number','number1','a simple number input', 'number description' )*/
-);
+//);
 
-if(isset($rep[1])) $rep[1]->add_field( clone($rep[0]) );
+//if(isset($rep[0])) $rep[0]->add_field( clone($rep[1]) );
 
+//$rep[0]->add_field( AM_MBF::create('file','pc4','post checkboxes', 'some description...'));
+
+
+$rep = AM_MBF::create( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' );
+//$rep = AM_MBF::create('repeatable', 'rep1', 'Rep nr.1', 'desc...' );
+$rep->add_field( AM_MBF::create('checkbox_group','pc9','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
+$rep->add_field( AM_MBF::create('radio_group','pc6','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
+//$rep->add_field( AM_MBF::create('color','pc1','post checkboxes', 'some description...'));
+//$rep->add_field( AM_MBF::create('image','pc3','post checkboxes', 'some description...'));
+//$rep->add_field( AM_MBF::create('textarea','pc30','post checkboxes', 'some description...'));
+//$rep->add_field( AM_MBF::create( 'plaintext','pt2','Additional options','Choose the additional options with the checkbox(es) below.' ) );
 
 $mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
-
-//$rep = AM_MBF::create('repeatable', 'rep1', 'Rep nr.1', 'desc...' );
-//$rep->add_field( AM_MBF::create('radio_group','pc6','post checkboxes', 'some description...', array('key1'=>'val1','key2'=>'val2')) );
-//$rep->add_field( AM_MBF::create('color','pc1','post checkboxes', 'some description...'));
-
-$mb2->add_field( AM_MBF::create( 'text','txt1','a text field!!','some description...' ) );
-$mb2->add_field( AM_MBF::create( 'checkbox','cb1','a checkbox field!!','some description...' ) );
-//$f2 = AM_MBF::create('text','text1','a simple text input');
+$mb2->add_field( AM_MBF::create( 'chosen','sel1','<b>slider 1</b>', 'my description', array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3,'range'=>true ) ) );
+$mb2->add_field( AM_MBF::create( 'plaintext','pt1','Additional options','Choose the additional options with the checkbox(es) below.' ) );
+$mb2->add_field( AM_MBF::create( 'checkbox','cb1','<em>a checkbox field!!</em>','some description...' ) );
+$mb2->add_field( AM_MBF::create('text','text1','a simple text input') );
 //$rep->add_field($f);
 //$mb->add_field($f2);
 //$f->add_settings(array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3));
@@ -170,10 +192,25 @@ $mb->add_field( $rep );
 
 
 //fu($mb);
+
 $cpt_note->assign_meta_box( array( $mb, $mb2 ) );
 
 $cpt_note->register();
 
+
+$new_mb = new AM_MB( 'new_meta_box_1', 'This is just a single AM_MB',
+  AM_MBF::create_batch(
+    // array( 'text','text1','a simple text input', 'text description' ),
+    // array( 'tel','tel1','a simple tel input', 'tel description' ),
+    // array( 'url','url1','a simple url input', 'url description' ),
+    // array( 'email','email1','a simple email input', 'email description' ),
+    // array( 'number','number1','a simple number input', 'number description' ),
+    array('image','pc3','post checkboxes', 'some description...'),
+    array('file','pc36','post checkboxes', 'some description...')
+  )
+);
+$new_mb->assign_post_type('post');
+$new_mb->register();
 
 
 

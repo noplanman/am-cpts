@@ -3,10 +3,20 @@
 /**
  * A repeatable field of other fields.
  *
+ * @todo AJAX for repeatable fields!!! This will solve many issues with different field types like slider and editor.
+ * @todo Add "undo" feature to undo removal of fields.
+ *
  * @since 1.0.0
  */
 class AM_MBF_Repeatable extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'repeatable';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $is_repeatable = false;
 
   /**
@@ -54,6 +64,9 @@ class AM_MBF_Repeatable extends AM_MBF {
         // Set the new repeatable names and ids, set up as arrays for the repeatable field.
         $rep_field->add_data( 'id', $rep_field->get_id() );
         $rep_field->add_data( 'parent', $this->id );
+
+        // This field is being repeated.
+        $rep_field->is_being_repeated( true );
 
         $this->repeatable_fields[ $rep_field->get_id() ] = $rep_field;
       }
@@ -252,29 +265,35 @@ class AM_MBF_Repeatable extends AM_MBF {
       for ( $i = -1; $i < count( $values_old ); $i++ ) {
         $is_empty_template = ( -1 == $i );
 
-        $class_empty_template = ( $is_empty_template ) ? ' class="empty-fields-template" style="display:none;"' : '';
-
-        $field_outputs .= '
-          <tr' . $class_empty_template . '>
-            <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort hndle"></span></td>
-            <td>
-        ';
+        $field_outputs .= sprintf( '
+          <tr%1$s>
+            <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort" title="%2$s"></span></td>
+            <td>',
+          ( $is_empty_template ) ? ' class="empty-fields-template" style="display:none;"' : '',
+          esc_attr__( 'Click & Drag to rearrange field', 'am-cpts' )
+        );
 
         // Add all repeatable fields to empty template / Output all saved values.
         $rep_fields = ( $is_empty_template ) ? $this->repeatable_fields : $values_old[ $i ];
 
+        // Output all repeatable fields.
         foreach ( $rep_fields as $rep_field ) {
-          $rep_field->is_being_repeated( true );
-          $field_outputs .= '<label class="meta-box-field-label" for="' . $rep_field->get_id() . '">' . $rep_field->get_label() . '</label>';
-          $field_outputs .= $rep_field->output();
-          $field_outputs .= ( 'plaintext' != $rep_field->get_type() ) ? '<br class="clear" />' : '';
-          $field_outputs .= '<span class="description">' . $rep_field->get_desc() . '</span>';
+          if ( 'plaintext' == $rep_field->get_type() ) {
+            $field_outputs .= $rep_field->output();
+          } else {
+            $field_outputs .= sprintf( '<span class="meta-box-field-label">%1$s</span>%2$s<span class="description">%3$s</span>',
+              $rep_field->get_label(),
+              $rep_field->output(),
+              $rep_field->get_desc()
+            );
+          }
         }
-        $field_outputs .= '
+        $field_outputs .= sprintf( '
             </td>
-            <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#"></a></td>
-          </tr>
-        ';
+            <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#" title="%1$s"></a></td>
+          </tr>',
+          esc_attr__( 'Remove field', 'am-cpts' )
+        );
 
         // Save empty template seperately.
         if ( $is_empty_template ) {
@@ -285,28 +304,34 @@ class AM_MBF_Repeatable extends AM_MBF {
         }
       }
 
-      return '
-        <table id="' . $this->id . '-repeatable" class="meta-box-repeatable" cellspacing="0">
+      return sprintf( '
+        <table id="%1$s-repeatable" class="meta-box-repeatable" cellspacing="0">
           <thead>
             <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'am-cpts' ) . '</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top"></a></th>
+              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label" title="%4$s"></span></th>
+              <th>%5$s</th>
+              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top" title="%6$s"></a></th>
             </tr>
-          ' . $empty_fields_template . '
+            %2$s
           </thead>
-          <tbody>
-          ' . $field_outputs . '
-          </tbody>
           <tfoot>
             <tr>
               <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
-              <th>' . __( 'Repeatable Fields', 'am-cpts' ) . '</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom"></a></th>
+              <th>%5$s</th>
+              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom" title="%6$s"></a></th>
             </tr>
           </tfoot>
-        </table>
-      ';
+          <tbody>
+            %3$s
+          </tbody>
+        </table>',
+        esc_attr( $this->id ),
+        $empty_fields_template,
+        $field_outputs,
+        esc_attr__( 'Rearrange fields', 'am-cpts' ),
+        esc_attr__( 'Repeatable Fields', 'am-cpts' ),
+        esc_attr__( 'Add new field', 'am-cpts' )
+      );
     } else {
       return __( 'No repeatable fields assigned!', 'am-cpts' );
     }

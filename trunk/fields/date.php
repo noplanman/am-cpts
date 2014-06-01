@@ -8,7 +8,14 @@
  * @since 1.0.0
  */
 class AM_MBF_Date extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'date';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field';
 
   /**

@@ -6,8 +6,19 @@
  * @since 1.0.0
  */
 class AM_MBF_Editor extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'editor';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'textarea';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $is_repeatable = false;
 
   /**
