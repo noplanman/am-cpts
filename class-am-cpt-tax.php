@@ -28,7 +28,7 @@ abstract class AM_CPT_Tax {
   protected $priority = 10;
 
   /**
-   * Required function to pass to WPs add_action.
+   * Register the CPT with all it's taxonomies and meta boxes (callback for WP add_action).
    *
    * @since 1.0.0
    */
@@ -147,7 +147,7 @@ abstract class AM_CPT_Tax {
    * @return string|null
    */
   final public function get_label( $key ) {
-    return ( isset( $this->args[ 'labels' ][ $key ] ) ) ? $this->args[ 'labels' ][ $key ] : null;
+    return ( isset( $this->args['labels'][ $key ] ) ) ? $this->args['labels'][ $key ] : null;
   }
 
   /**
@@ -158,7 +158,7 @@ abstract class AM_CPT_Tax {
    * @return array|null
    */
   final public function get_labels() {
-    return ( isset( $this->args[ 'labels' ] ) ) ? $this->args[ 'labels' ] : null;
+    return ( isset( $this->args['labels'] ) ) ? $this->args['labels'] : null;
   }
 }
 
@@ -251,7 +251,7 @@ class AM_Tax extends AM_CPT_Tax {
   }
 
   /**
-   * Register taxonomy / taxonomies.
+   * Register taxonomy / taxonomies (callback for WP add_action).
    *
    * @since 1.0.0
    */
@@ -503,78 +503,9 @@ class AM_CPT extends AM_CPT_Tax {
   }
 
   /**
-   * Find out which meta box types are being used by this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @return array An array of meta box types.
-   */
-  final public function used_meta_box_types() {
-    $types = array();
-    foreach ( $this->meta_boxes as $meta_box ) {
-      $types = array_merge( $types, $meta_box->get_types() );
-    }
-
-    return array_unique( $types );
-  }
-
-  /**
-   * Enqueue necessary scripts and styles.
-   *
-   * @since 1.0.0
-   */
-  final public function _admin_enqueue_scripts() {
-    global $pagenow;
-    if ( in_array( $pagenow, array( 'post-new.php', 'post.php' ) ) && get_post_type() == $this->slug ) {
-      $used_types = $this->used_meta_box_types();
-
-      $plugin_dir_url = plugin_dir_url( __FILE__ );
-
-
-      $deps_js = array( 'jquery' );
-      $deps_css = array();
-
-      if ( in_array( 'date', $used_types ) ) {
-        $deps_js[] = 'jquery-ui-datepicker';
-      }
-      if ( in_array( 'slider', $used_types ) ) {
-        $deps_js[] = 'jquery-ui-slider';
-      }
-      if ( in_array( 'color', $used_types ) ) {
-        $deps_js[] = 'farbtastic';
-        $deps_css[] = 'farbtastic';
-      }
-      if ( array_intersect( array( 'image', 'file' ), $used_types ) ) {
-        $deps_js[] = 'media-upload';
-      }
-      if ( array_intersect( array( 'chosen', 'post_chosen' ), $used_types ) ) {
-        wp_register_script( 'chosen', $plugin_dir_url . 'js/chosen.js' );
-        $deps_js[] = 'chosen';
-
-        wp_register_style( 'chosen', $plugin_dir_url . 'css/chosen.css' );
-        $deps_css[] = 'chosen';
-      }
-
-      if ( array_intersect( array( 'date', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_types ) ) {
-        wp_enqueue_script( 'meta-box', $plugin_dir_url . 'js/scripts.js', $deps_js, null, true );
-      }
-
-    //  wp_register_style( 'jqueryui', $plugin_dir_url . '/css/jqueryui.css' );
-      wp_register_style( 'jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css' );
-      $deps_css[] = 'jqueryui';
-
-      wp_enqueue_style( 'meta-box', $plugin_dir_url . 'css/meta-box.css', $deps_css );
-    }
-  }
-
-  /**
    * Add all actions related to registering this custom post type.
    */
   final public function register() {
-    // Metabox related!
-    add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
-
-
     // Set the 'taxonomy' argument for the CPT.
     $this->set_arg( 'taxonomies', array_keys( $this->taxonomies ) );
 
@@ -592,7 +523,7 @@ class AM_CPT extends AM_CPT_Tax {
   }
 
   /**
-   * Register the custom post type.
+   * Register the CPT (callback for WP add_action).
    */
   final public function _register() {
     register_post_type( $this->slug, $this->args );

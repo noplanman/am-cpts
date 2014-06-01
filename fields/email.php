@@ -6,7 +6,14 @@
  * @since 1.0.0
  */
 class AM_MBF_Email extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'email';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field'; // 'email' sanitizer removes text if it's not a correct email address.
 
   /**

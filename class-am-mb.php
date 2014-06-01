@@ -270,22 +270,27 @@ class AM_MB {
    * @since 1.0.0
    */
   final public function register() {
-    // Register only for selected post types.
-    foreach( $this->post_types as $post_type ) {
-      add_action( 'add_meta_boxes_' . $post_type, array( $this, '_register' ) );
+    if ( ! empty( $this->post_types ) ) {
+      // Enqueue necessary JS and CSS scripts.
+      add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
+
+      // Register only for selected post types.
+      foreach( $this->post_types as $post_type ) {
+        add_action( 'add_meta_boxes_' . $post_type, array( $this, '_register' ) );
+      }
+      add_action( 'save_post',  array( $this, '_save' ) );
     }
-    add_action( 'save_post',  array( $this, '_save' ) );
   }
 
   /**
-   * Load meta data for all field of this meta box.
+   * Load meta data for all field of this meta box and sanitize it.
    *
-   * This need to be a seperate function, to allow the data to be loaded outside wp-admin.
+   * This needs to be a seperate function, to allow the data to be loaded outside wp-admin.
    *
    * @since 1.0.0
    */
   final public function load_data() {
-    // Set all fields values and sanitize before output.
+    // Set all fields values and sanitize.
     foreach ( $this->fields as $field ) {
       $field->set_value_old( get_post_meta( get_the_ID(), $field->get_id(), true ) );
       $field->is_saving( false );
@@ -294,7 +299,7 @@ class AM_MB {
   }
 
   /**
-   * Register the meta box.
+   * Register the meta box (callback for WP add_action).
    *
    * @since 1.0.0
    */
@@ -306,7 +311,57 @@ class AM_MB {
   }
 
   /**
-   * Saves the entered meta box data.
+   * Enqueue necessary scripts and styles (callback for WP add_action).
+   *
+   * @since 1.0.0
+   */
+  final public function _admin_enqueue_scripts() {
+    global $pagenow;
+
+    if ( in_array( $pagenow, array( 'post-new.php', 'post.php' ) ) && in_array( get_post_type(), $this->post_types ) ) {
+      $used_field_types = $this->get_types();
+
+      $plugin_dir_url = plugin_dir_url( __FILE__ );
+
+      // JS and CSS dependencies as arrays.
+      $deps_js = array( 'jquery' );
+      $deps_css = array();
+
+      if ( in_array( 'date', $used_field_types ) ) {
+        $deps_js[] = 'jquery-ui-datepicker';
+      }
+      if ( in_array( 'slider', $used_field_types ) ) {
+        $deps_js[] = 'jquery-ui-slider';
+      }
+      if ( in_array( 'color', $used_field_types ) ) {
+        $deps_js[] = 'farbtastic';
+        $deps_css[] = 'farbtastic';
+      }
+      if ( array_intersect( array( 'image', 'file' ), $used_field_types ) ) {
+        $deps_js[] = 'media-upload';
+      }
+      if ( array_intersect( array( 'chosen', 'post_chosen' ), $used_field_types ) ) {
+        wp_register_script( 'chosen', $plugin_dir_url . 'js/chosen.js' );
+        $deps_js[] = 'chosen';
+
+        wp_register_style( 'chosen', $plugin_dir_url . 'css/chosen.css' );
+        $deps_css[] = 'chosen';
+      }
+
+      if ( array_intersect( array( 'date', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_field_types ) ) {
+        wp_enqueue_script( 'meta-box', $plugin_dir_url . 'js/scripts.js', $deps_js, null, true );
+      }
+
+    //  wp_register_style( 'jqueryui', $plugin_dir_url . '/css/jqueryui.css' );
+      wp_register_style( 'jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css' );
+      $deps_css[] = 'jqueryui';
+
+      wp_enqueue_style( 'meta-box', $plugin_dir_url . 'css/meta-box.css', $deps_css );
+    }
+  }
+
+  /**
+   * Saves the entered meta box data (callback for WP add_action).
    *
    * @since 1.0.0
    */
@@ -347,7 +402,9 @@ class AM_MB {
   }
 
   /**
-   * Output the meta box.
+   * Output the meta box (callback for WP add_action).
+   *
+   * @todo Error handling output.
    *
    * @since 1.0.0
    */
@@ -357,29 +414,25 @@ class AM_MB {
 
     // Begin the field table and loop.
     if ( $this->fields ) {
-      $out = '<table class="form-table meta-box mb-id-' . $this->id . '">';
+      $out = sprintf( '<table class="form-table meta-box mb-id-%1$s">', esc_attr( $this->id ) );
 
     //  $errors = array();
       foreach ( $this->fields as $field ) {
 
         // Add class to description.
         if ( '' != $field->get_desc() ) {
-          $field->set_desc( '<span class="description">' . $field->get_desc() . '</span>' );
+          $field->set_desc( sprintf( '<span class="description">%1$s</span>', $field->get_desc() ) );
         }
 
         $out .= '<tr>';
 
         if ( 'plaintext' == $field->get_type() ) {
-    //      $out .= '<td colspan="2" class="meta-box-plaintext"><span' . $field->get_classes() . '>' . $field->get_label() . '</span>' . $field->get_desc();
-          $out .= '<td colspan="2" class="meta-box-plaintext">' . $field->output() . $field->get_desc();
+          $out .= sprintf( '<td colspan="2">%1$s',
+            $field->output()
+          );
         } else {
-          $for = $field->get_id();
-          // If field is repeatable, set label for first field.
-          if ( 'repeatable' == $field->get_type() && $rep_fields = $field->get_repeatable_fields() ) {
-            $for = reset( $rep_fields )->get_id( true ) . '-0';
-          }
           $out .= sprintf( '<th><label class="meta-box-field-label" for="%1$s">%2$s</label>%3$s</th>',
-            $for,
+            ( 'repeatable' != $field->get_type() ) ? esc_attr( $field->get_id() ) : '',
             $field->get_label(),
             $field->get_desc()
           );

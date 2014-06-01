@@ -6,13 +6,21 @@
  * @since 1.0.0
  */
 class AM_MBF_PlainText extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'plaintext';
 
   /**
    * Check AM_MBF for description.
    */
   public function output() {
-    return ( isset( $this->label ) && '' != $this->label ) ? sprintf( '<h2>%1$s</h2>', esc_html( $this->label ) ) : '';
+    return ( isset( $this->label ) && '' != $this->label )
+      ? sprintf( '<div class="meta-box-plaintext"><h2>%1$s</h2><span class="description">%2$s</span></div>',
+        $this->label,
+        $this->get_desc()
+      )
+      : '';
   }
 
   /**

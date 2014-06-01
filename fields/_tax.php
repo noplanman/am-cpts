@@ -1,22 +1,34 @@
 <?php
 
-// TODO: admin notices for errors.
-// save empty array / remove all checkboxes...
-// does it make sense to have this? duplicate to default WP metabox.
 /**
  * Drop down of taxonomies.
+ *
+ * @todo Does it make sense to have this?! Duplicate to default WP meta box?!
+ * @todo Admin notices for errors.
+ * @todo Save empty array / remove all taxonomy assignments.
  */
 class AM_MBF_TaxSelect extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'tax_select';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'sanitize_title';
 
+  /**
+   * Assign the selected taxonomies to the post type.
+   *
+   * @param  integer $post_id ID of the post to modify.
+   */
   public function save( $post_id ) {
     wp_set_object_terms( $post_id, $this->value_new, $this->id );
   }
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
     $terms = get_terms( $this->id, 'get=all' );
@@ -57,23 +69,35 @@ class AM_MBF_TaxSelect extends AM_MBF {
   }
 }
 
-// TODO: admin notices for errors.
-// save empty array / remove all checkboxes...
-// does it make sense to have this? duplicate to default WP metabox.
 /**
  * Checkboxes of taxonomies.
+ *
+ * @todo Does it make sense to have this?! Duplicate to default WP meta box?!
+ * @todo Admin notices for errors.
+ * @todo Save empty array / remove all taxonomy assignments.
  */
 class AM_MBF_TaxCheckboxes extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'tax_checkboxes';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'sanitize_title';
 
+  /**
+   * Assign the selected taxonomies to the post type.
+   *
+   * @param  integer $post_id ID of the post to modify.
+   */
   public function save( $post_id ) {
     wp_set_object_terms( $post_id, $this->value_new, $this->id );
   }
 
   /**
-   * Return the field output.
-   * @return string
+   * Check AM_MBF for description.
    */
   public function output() {
     $terms = get_terms( $this->id, 'get=all' );

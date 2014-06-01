@@ -4,12 +4,25 @@
  * A slider to input numbers.
  *
  * @todo Make repeatable!!
+ * @todo Vertical slider? Is this necessary?
+ * @todo More options. Check jQuery UI for all possibilities.
  *
  * @since 1.0.0
  */
 class AM_MBF_Slider extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'slider';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'floatval';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $is_repeatable = false;
 
   /**

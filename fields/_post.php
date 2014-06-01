@@ -6,7 +6,14 @@
  * @since 1.0.0
  */
 class AM_MBF_PostCheckboxes extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'post_checkboxes';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'intval';
 
   /**
@@ -55,7 +62,14 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
  * @since 1.0.0
  */
 class AM_MBF_PostSelect extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'post_select';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'intval';
 
   /**
@@ -104,7 +118,14 @@ class AM_MBF_PostSelect extends AM_MBF {
  * @since 1.0.0
  */
 class AM_MBF_PostChosen extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'post_chosen';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'intval';
 
   /**

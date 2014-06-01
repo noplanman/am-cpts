@@ -6,7 +6,14 @@
  * @since 1.0.0
  */
 class AM_MBF_Tel extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   */
   protected static $type = 'tel';
+
+  /**
+   * Check AM_MBF for description.
+   */
   protected $sanitizer = 'text_field';
 
   /**
