@@ -323,40 +323,61 @@ class AM_MB {
 
       $plugin_dir_url = plugin_dir_url( __FILE__ );
 
-      // JS and CSS dependencies as arrays.
-      $deps_js = array( 'jquery' );
-      $deps_css = array();
+      // JS and CSS handles to be enqueued.
+      $enq_js = array();
+      $enq_css = array();
 
       if ( in_array( 'date', $used_field_types ) ) {
-        $deps_js[] = 'jquery-ui-datepicker';
+        $enq_js[] = 'jquery-ui-datepicker';
       }
       if ( in_array( 'slider', $used_field_types ) ) {
-        $deps_js[] = 'jquery-ui-slider';
+        $enq_js[] = 'jquery-ui-slider';
       }
       if ( in_array( 'color', $used_field_types ) ) {
-        $deps_js[] = 'farbtastic';
-        $deps_css[] = 'farbtastic';
+       $enq_js[] = 'farbtastic';
+       $enq_css[] = 'farbtastic';
       }
       if ( array_intersect( array( 'image', 'file' ), $used_field_types ) ) {
-        $deps_js[] = 'media-upload';
+        $enq_js[] = 'media-upload';
       }
       if ( array_intersect( array( 'chosen', 'post_chosen' ), $used_field_types ) ) {
-        wp_register_script( 'chosen', $plugin_dir_url . 'js/chosen.js' );
-        $deps_js[] = 'chosen';
+        if ( ! wp_script_is( 'chosen', 'registered' ) ) {
+          wp_register_script( 'chosen', $plugin_dir_url . 'js/chosen.js', array( 'jquery' ), null, true );
+        }
+        $enq_js[] = 'chosen';
 
-        wp_register_style( 'chosen', $plugin_dir_url . 'css/chosen.css' );
-        $deps_css[] = 'chosen';
+        if ( ! wp_style_is( 'chosen', 'registered' ) ) {
+          wp_register_style( 'chosen', $plugin_dir_url . 'css/chosen.css' );
+        }
+        $enq_css[] = 'chosen';
       }
 
-      if ( array_intersect( array( 'date', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_field_types ) ) {
-        wp_enqueue_script( 'meta-box', $plugin_dir_url . 'js/scripts.js', $deps_js, null, true );
+      if ( ! wp_style_is( 'jquery-ui' ) ) {
+        wp_enqueue_style( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css' );
       }
 
-    //  wp_register_style( 'jqueryui', $plugin_dir_url . '/css/jqueryui.css' );
-      wp_register_style( 'jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css' );
-      $deps_css[] = 'jqueryui';
+      if ( ! wp_style_is( 'meta-box' ) ) {
+        wp_enqueue_style( 'meta-box', $plugin_dir_url . 'css/meta-box.css' );
+      }
 
-      wp_enqueue_style( 'meta-box', $plugin_dir_url . 'css/meta-box.css', $deps_css );
+      if ( array_intersect( array( 'date', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_field_types )
+        && ! wp_script_is( 'meta-box' ) ) {
+        wp_enqueue_script( 'meta-box', $plugin_dir_url . 'js/scripts.js', array( 'jquery' ), null, true );
+      }
+
+      // Enqueue all scripts.
+      foreach ( $enq_js as $enq ) {
+        if ( ! wp_script_is( $enq ) ) {
+          wp_enqueue_script( $enq );
+        }
+      }
+
+      // Enqueue all styles.
+      foreach ( $enq_css as $enq ) {
+        if ( ! wp_style_is( $enq ) ) {
+          wp_enqueue_style( $enq );
+        }
+      }
     }
   }
 
