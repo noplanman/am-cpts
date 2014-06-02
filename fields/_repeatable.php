@@ -42,13 +42,24 @@ class AM_MBF_Repeatable extends AM_MBF {
   private $_value_new = array();
 
   /**
-   * Add a field to this repeatable field.
+   * Constructor to optionally add fields.
+   *
+   * @since 1.0.1
+   *
+   * @param null|AM_MBF|array $fields Object or array of AM_MBF fields to add to this repeatable field.
+   */
+  public function __construct( $fields = null ) {
+    $this->add_fields( $fields );
+  }
+
+  /**
+   * Add fields to this repeatable field.
    *
    * @since 1.0.0
    *
-   * @param AM_MBF|array  $fields Object or array of AM_MBF to add to this repeatable field.
+   * @param AM_MBF|array $fields Object or array of AM_MBF to add to this repeatable field.
    */
-  public function add_field( $fields ) {
+  public function add_fields( $fields ) {
     if ( is_null( $fields ) ) {
       return;
     }
@@ -71,6 +82,19 @@ class AM_MBF_Repeatable extends AM_MBF {
         $this->repeatable_fields[ $rep_field->get_id() ] = $rep_field;
       }
     }
+  }
+
+  /**
+   * Add a field to this repeatable field.
+   *
+   * This function can be regarded as a facade function.
+   *
+   * @since 1.0.1
+   *
+   * @param AM_MBF $field Object of AM_MBF to add to this repeatable field.
+   */
+  public function add_field( $field ) {
+    $this->add_fields( $field );
   }
 
   /**
@@ -316,7 +340,7 @@ class AM_MBF_Repeatable extends AM_MBF {
           </thead>
           <tfoot>
             <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label"></span></th>
+              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label" title="%4$s"></span></th>
               <th>%5$s</th>
               <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom" title="%6$s"></a></th>
             </tr>
