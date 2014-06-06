@@ -23,7 +23,7 @@ class AM_MBF_Image extends AM_MBF {
    * Check AM_MBF for description.
    */
   public function output() {
-    $image_id = ( intval( $this->value_old ) > 0 ) ? intval( $this->value_old ) : -1;
+    $image_id = ( intval( $this->value ) > 0 ) ? intval( $this->value ) : -1;
     $image_url = '';
 
     $hide_upload_button = $hide_clear_button = ' style="display:none;"';

@@ -24,7 +24,7 @@ class AM_MBF_Checkbox extends AM_MBF {
       esc_attr( $this->id ),
       esc_attr( $this->name ),
       $this->get_label(),
-      checked( $this->value_old, true, false ),
+      checked( $this->value, true, false ),
       $this->get_classes(),
       $this->get_data_atts()
     );
@@ -83,7 +83,7 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
         esc_attr( $this->name ),
         esc_html( $opt_label ),
         esc_attr( $opt_value ),
-        checked( is_array( $this->value_old ) && in_array( $opt_value, $this->value_old ), true, false ),
+        checked( is_array( $this->value ) && in_array( $opt_value, $this->value ), true, false ),
         $this->get_classes(),
         $this->get_data_atts()
       );

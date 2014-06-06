@@ -40,7 +40,7 @@ class AM_MBF_Editor extends AM_MBF {
     $this->add_setting( 'editor_class', $this->get_classes( $this->get_setting( 'editor_class' ), false ) );
 
     ob_start();
-    wp_editor( $this->value_old, $this->id, $this->get_settings() );
+    wp_editor( $this->value, $this->id, $this->get_settings() );
     return ob_get_clean();
   }
 }

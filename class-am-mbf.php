@@ -77,7 +77,7 @@ abstract class AM_MBF {
   protected $sanitizer = 'text_field';
 
   /**
-   * Check if this field is being saved or loaded.
+   * Check if this field is being saved or loaded (required for sanitization).
    *
    * @since 1.0.0
    * @var boolean
@@ -149,20 +149,12 @@ abstract class AM_MBF {
   protected $settings = array();
 
   /**
-   * All fields that are to be repeated for this field. This array contains other fields.
-   *
-   * @since 1.0.0
-   * @var array
-   */
-  protected $repeatable_fields = array();
-
-  /**
    * The currently set meta value.
    *
    * @since 1.0.0
    * @var string|array
    */
-  protected $value_old = null;
+  protected $value = null;
 
   /**
    * The new meta value to be set.
@@ -304,7 +296,7 @@ abstract class AM_MBF {
     $this->pre_sanitize();
 
     // Check which values have to be sanitized, the old or new ones.
-    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value_old;
+    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value;
 
     if ( isset( $values_to_sanitize ) ) {
 
@@ -356,7 +348,7 @@ abstract class AM_MBF {
       if ( $this->is_saving ) {
         $this->value_new = $values_sanitized;
       } else {
-        $this->value_old = $values_sanitized;
+        $this->value = $values_sanitized;
       }
     }
 
@@ -910,10 +902,10 @@ abstract class AM_MBF {
    *
    * @since 1.0.0
    *
-   * @param object|array $value_old
+   * @param object|array $value
    */
-  public function set_value_old( $value_old ) {
-    $this->value_old = $value_old;
+  public function set_value( $value ) {
+    $this->value = $value;
   }
 
   /**
@@ -923,8 +915,8 @@ abstract class AM_MBF {
    *
    * @return object|array
    */
-  public function get_value_old() {
-    return $this->value_old;
+  public function get_value() {
+    return $this->value;
   }
 
   /**
@@ -970,8 +962,8 @@ abstract class AM_MBF {
   public function save( $post_id ) {
     if ( is_null( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
       // Remove the post meta data.
-      delete_post_meta( $post_id, $this->id, $this->value_old );
-    } elseif ( $this->value_new != $this->value_old ) {
+      delete_post_meta( $post_id, $this->id, $this->value );
+    } elseif ( $this->value_new != $this->value ) {
       // Add / update the post meta data.
       update_post_meta( $post_id, $this->id, $this->value_new );
     }

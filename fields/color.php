@@ -23,7 +23,7 @@ class AM_MBF_Color extends AM_MBF {
    */
   public function post_sanitize() {
     // Check which value has been sanitized, the old or new one.
-    $sanitized_value = ( $this->is_saving ) ? $this->value_new : $this->value_old;
+    $sanitized_value = ( $this->is_saving ) ? $this->value_new : $this->value;
 
     if ( 3 === strlen( $sanitized_value ) ) {
       // Convert from short to long form (i.e: '0f0' => '00ff00').
@@ -41,7 +41,7 @@ class AM_MBF_Color extends AM_MBF {
     if ( $this->is_saving ) {
       $this->value_new = $sanitized_value;
     } else {
-      $this->value_old = $sanitized_value;
+      $this->value = $sanitized_value;
     }
   }
 
@@ -52,7 +52,7 @@ class AM_MBF_Color extends AM_MBF {
     return sprintf( '<input type="text" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s /><div id="colorpicker-%1$s"></div>',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      ( '' != $this->value_old ) ? esc_attr( $this->value_old ) : '#',
+      ( '' != $this->value ) ? esc_attr( $this->value ) : '#',
       ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 10,
       $this->get_classes(),
       $this->get_data_atts()

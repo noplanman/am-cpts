@@ -20,6 +20,15 @@ class AM_MBF_Repeatable extends AM_MBF {
   protected $is_repeatable = false;
 
   /**
+   * All fields that are to be repeated for this field. This array contains other fields.
+   *
+   * @since 1.0.0
+   *
+   * @var array
+   */
+  protected $repeatable_fields = array();
+
+  /**
    * The old value as it is in the database.
    *
    * @todo Instead of this variable, have an array with the "real" repeatable field objects.
@@ -28,7 +37,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    *
    * @var array
    */
-  private $_value_old = array();
+  private $_value = array();
 
   /**
    * The new value as it will be saved to the database.
@@ -107,8 +116,8 @@ class AM_MBF_Repeatable extends AM_MBF {
   public function save( $post_id ) {
     if ( is_null( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
       // Remove the post meta data.
-      delete_post_meta( $post_id, $this->id, $this->_value_old );
-    } elseif ( $this->_value_new != $this->_value_old ) {
+      delete_post_meta( $post_id, $this->id, $this->_value );
+    } elseif ( $this->_value_new != $this->_value ) {
       // Add / update the post meta data.
       update_post_meta( $post_id, $this->id, $this->_value_new );
     }
@@ -121,7 +130,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    */
   public function sanitize() {
     // Check which values have to be sanitized, the old or new ones.
-    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value_old;
+    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value;
 
     if ( is_array( $values_to_sanitize ) ) {
       // Loop all values.
@@ -143,17 +152,17 @@ class AM_MBF_Repeatable extends AM_MBF {
    *
    * @since 1.0.0
    *
-   * @param array $value_old The old values to assign to this repeatable field.
+   * @param array $value The old values to assign to this repeatable field.
    */
-  public function set_value_old( $value_old ) {
+  public function set_value( $value ) {
     // Keep 'original' old value.
-    $this->_value_old = $value_old;
+    $this->_value = $value;
 
     if ( is_array( $this->repeatable_fields ) && ! empty( $this->repeatable_fields ) ) {
 
       $new_values_old = array();
 
-      $values_old = ( is_array( $value_old ) ) ? array_values( $value_old ) : array();
+      $values_old = ( is_array( $value ) ) ? array_values( $value ) : array();
       $i = count( $values_old );
 
       // Do a backwards loop.
@@ -186,7 +195,7 @@ class AM_MBF_Repeatable extends AM_MBF {
             // Clone repeatable field to keep original pristine.
             $rep_field = clone( $rep_field );
 
-            $rep_field->set_value_old( $values[ $rep_field_id ] );
+            $rep_field->set_value( $values[ $rep_field_id ] );
             $rep_field->set_id( $rep_field_id . '-' . $i );
             $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
 
@@ -199,9 +208,9 @@ class AM_MBF_Repeatable extends AM_MBF {
         }
       }
       // Reverse the entries of the array to have them sorted correctly.
-      $value_old = array_reverse( $new_values_old );
+      $value = array_reverse( $new_values_old );
     }
-    $this->value_old = $value_old;
+    $this->value = $value;
   }
 
   /**
@@ -209,7 +218,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    *
    * @since 1.0.0
    *
-   * @param array $value_old The old values to assign to this repeatable field.
+   * @param array $value The old values to assign to this repeatable field.
    */
   public function set_value_new( $value_new ) {
 
@@ -277,7 +286,7 @@ class AM_MBF_Repeatable extends AM_MBF {
     $field_outputs = '';
 
     if ( $this->get_repeatable_fields() ) {
-      $values_old = $this->value_old;
+      $values_old = $this->value;
 
       // Make sure we have an array to work with.
       if ( ! is_array( $values_old ) ) {

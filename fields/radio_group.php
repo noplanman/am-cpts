@@ -52,7 +52,7 @@ class AM_MBF_RadioGroup extends AM_MBF {
         esc_attr( $this->name ),
         $opt_label,
         esc_attr( $opt_value ),
-        checked( $this->value_old, $opt_value, false ),
+        checked( $this->value, $opt_value, false ),
         $this->get_classes(),
         $this->get_data_atts()
       );

@@ -25,7 +25,7 @@ class AM_MBF_TextArea extends AM_MBF {
     return sprintf( '<textarea name="%2$s" id="%1$s" cols="60" rows="4"%4$s%5$s>%3$s</textarea>',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      esc_textarea( $this->value_old ),
+      esc_textarea( $this->value ),
       $this->get_classes(),
       $this->get_data_atts()
     );
