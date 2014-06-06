@@ -47,8 +47,8 @@ class AM_MBF_Slider extends AM_MBF {
         $this->value_new = explode( ',', $this->value_new );
       }
     } else {
-      if ( isset( $this->value_old ) ) {
-        $this->value_old = explode( ',', $this->value_old );
+      if ( isset( $this->value ) ) {
+        $this->value = explode( ',', $this->value );
       }
     }
   }
@@ -64,8 +64,8 @@ class AM_MBF_Slider extends AM_MBF {
         $this->value_new = implode( ',', $this->value_new );
       }
     } else {
-      if ( is_array( $this->value_old ) ) {
-        $this->value_old = implode( ',', $this->value_old );
+      if ( is_array( $this->value ) ) {
+        $this->value = implode( ',', $this->value );
       }
     }
   }
@@ -82,7 +82,7 @@ class AM_MBF_Slider extends AM_MBF {
     $range = ( $this->get_setting( 'range', false ) ) ? 'true' : 'false';
     $handles = $this->get_setting( 'handles', 1 );
 
-    $values = $this->get_value_old();
+    $values = $this->get_value();
 
     if ( ! is_array( $values ) ) {
       $values = array_filter( explode( ',', $values ) );
@@ -113,7 +113,7 @@ class AM_MBF_Slider extends AM_MBF {
       <input type="hidden" name="%2$s" id="%1$s" value="%3$s"%5$s />',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      esc_attr( $this->value_old ),
+      esc_attr( $this->value ),
       $this->get_classes(),
       $this->get_data_atts()
     );

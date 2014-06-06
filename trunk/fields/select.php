@@ -45,7 +45,7 @@ class AM_MBF_Select extends AM_MBF {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $opt_value ),
         $opt_label,
-        selected( $this->value_old, $opt_value, false )
+        selected( $this->value, $opt_value, false )
       );
     }
     $ret .= '</select>';
@@ -103,7 +103,7 @@ class AM_MBF_Chosen extends AM_MBF {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $opt_value ),
         $opt_label,
-        selected( $this->value_old, $opt_value, false )
+        selected( $this->value, $opt_value, false )
       );
     }
     $ret .= '</select>';

@@ -36,7 +36,7 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
         esc_attr( $this->name ),
         esc_attr( $item->ID ),
         esc_html( $item->post_title ),
-        checked( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false ),
+        checked( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false ),
         $this->get_classes(),
         $this->get_data_atts()
       );
@@ -96,7 +96,7 @@ class AM_MBF_PostSelect extends AM_MBF {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $item->ID ),
         esc_html( $item->post_title ),
-        selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false )
+        selected( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false )
       );
     }
     $ret .= '</select>';
@@ -149,7 +149,7 @@ class AM_MBF_PostChosen extends AM_MBF {
       $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
         esc_attr( $item->ID ),
         esc_html( $item->post_title ),
-        selected( is_array( $this->value_old ) && in_array( $item->ID, $this->value_old ), true, false )
+        selected( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false )
       );
     }
     $ret .= '</select>';

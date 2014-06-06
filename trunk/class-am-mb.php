@@ -292,7 +292,7 @@ class AM_MB {
   final public function load_data() {
     // Set all fields values and sanitize.
     foreach ( $this->fields as $field ) {
-      $field->set_value_old( get_post_meta( get_the_ID(), $field->get_id(), true ) );
+      $field->set_value( get_post_meta( get_the_ID(), $field->get_id(), true ) );
       $field->is_saving( false );
       $field->sanitize();
     }
@@ -413,7 +413,7 @@ class AM_MB {
     foreach ( $this->fields as $field ) {
       $value_new = ( isset( $_POST[ $field->get_id() ] ) ) ? $_POST[ $field->get_id() ] : null;
       $field->set_value_new( $value_new );
-      $field->set_value_old( get_post_meta( $post_id, $field->get_id(), true ) );
+      $field->set_value( get_post_meta( $post_id, $field->get_id(), true ) );
 
       // Sanitize field before save.
       $field->is_saving( true );

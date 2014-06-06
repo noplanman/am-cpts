@@ -24,7 +24,7 @@ class AM_MBF_File extends AM_MBF {
    */
   public function output() {
     $class_icon_checked = '';
-    $file_id = ( intval( $this->value_old ) > 0 ) ? intval( $this->value_old ) : -1;
+    $file_id = ( intval( $this->value ) > 0 ) ? intval( $this->value ) : -1;
     $file_title = '';
 
     $hide_upload_button = $hide_clear_button = ' style="display:none;"';
