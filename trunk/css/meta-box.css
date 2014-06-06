@@ -136,7 +136,14 @@
 /**** REPEATABLE FIELDS ****/
 
 .meta-box .meta-box-repeatable {
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   width: 100%;
+}
+
+.meta-box .meta-box-repeatable thead,
+.meta-box .meta-box-repeatable tfoot {
+  background: #f7f7f7;
 }
 
 .meta-box .meta-box-repeatable thead th,
