@@ -169,7 +169,7 @@ class AM_MB {
 
     // Add all fields.
     foreach ( $fields as $field ) {
-      if ( is_subclass_of( $field, 'AM_MBF' ) ) {
+      if ( $field instanceof AM_MBF ) {
         $field->set_meta_box( $this );
         $this->fields[ $field->get_id() ] = $field;
       }
@@ -186,7 +186,7 @@ class AM_MB {
    * @return array              All found field types used by this meta box, including those used by repeatable fields.
    */
   final public function get_types( $fields = null, $types = array() ) {
-    if ( is_null( $fields ) ) {
+    if ( ! isset( $fields ) ) {
       $fields = $this->fields;
     }
 
@@ -209,7 +209,7 @@ class AM_MB {
    * @param array|string $post_types
    */
   final public function assign_post_type( $post_types ) {
-    if ( is_null( $post_types ) ) {
+    if ( ! isset( $post_types ) ) {
       return;
     }
 
@@ -237,7 +237,7 @@ class AM_MB {
    * @param array|string $post_types
    */
   final public function remove_post_type( $post_types ) {
-    if ( is_null( $post_types ) ) {
+    if ( ! isset( $post_types ) ) {
       return;
     }
 
