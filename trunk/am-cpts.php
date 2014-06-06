@@ -29,16 +29,15 @@ require_once 'class-am-mbf.php';
 
 /*
 
-
-JUST FOR TESTING!!!!
-
+Examples!!
 
  */
 
+/*
 
-
-
+// Easily extend the AM_ classes to create classes that fit exaclty your needs!
 class Tax_Note_Styles extends AM_Tax {
+
   public function __construct() {
     $labels = array(
       'name'                  => _x( 'Styles', 'Taxonomy plural name', 'am-cpts' ),
@@ -71,6 +70,8 @@ class Tax_Note_Styles extends AM_Tax {
       'query_var'         => true,
       'capabilities'      => array(),
     );
+
+    // Create AM_Tax.
     parent::__construct( 'styles', $args );
   }
 }
@@ -78,7 +79,6 @@ class Tax_Note_Styles extends AM_Tax {
 class CPT_Note extends AM_CPT {
 
   public function __construct() {
-
     $labels = array(
       'name'                => __( 'Notes', 'am-cpts' ),
       'singular_name'       => __( 'Note', 'am-cpts' ),
@@ -120,98 +120,39 @@ class CPT_Note extends AM_CPT {
         )
     );
 
-    parent::__construct( 'note', $args, new Tax_Note_Styles() );
-  }
-
-  public static function create() {
-    $cpt_note = new self();
-    $cpt_note->register();
+    // Create AM_CPT.
+    parent::__construct( 'note', $args );
   }
 }
 
-//CPT_Note::create();
-
+// Create own AM_CPT.
 $cpt_note = new CPT_Note();
+
+// Create own AM_Tax.
 $tax_styles = new Tax_Note_Styles();
+
+// Also assign this taxonomy to the 'post' post type.
+$tax_styles->assign_post_type( 'post' );
+
+// Assign taxonomy.
 $cpt_note->assign_taxonomy( $tax_styles );
 
-$tax_styles->assign_post_type('post');
+$mb_basic = new AM_MB( 'metabox1', 'First Metabox' );
+$mb_basic->add_field( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' );
+$mb_basic->add_field( 'text','text1','Simple text input', 'Text description' );
+$mb_basic->add_field( 'tel','tel1','Simple tel input', 'Tel description' );
+$mb_basic->add_field( 'url','url1','Simple URL input', 'URL description' );
+$mb_basic->add_field( 'email','email1','Simple email input', 'Email description' );
+$mb_basic->add_field( 'number','number1','Simple number input', 'Number description' );
 
-// Seperately register new taxonomy for posts.
-/*$new_tax = new AM_Tax( $tax_styles->get_slug(), $tax_styles->get_args() );
-$new_tax->set_cpt('page');
-$new_tax->register();*/
+// Assign meta box.
+$cpt_note->assign_meta_box( $mb_basic );
 
-
-$mb = new AM_MB( 'metabox1', 'First Metabox' );
-//$rep = AM_MBF::create_batch(
-//  array( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' )
-
-//  array('slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3)),
-//  array('color','pc1','post checkboxes', 'some description...'),
-  //array('image','pc3','post checkboxes', 'some description...')
-/*  array( 'plaintext', 'plaintext1', 'Just some plain text', 'and the description' ),
-  array( 'text','text1','a simple text input', 'text description' ),
-  array( 'tel','tel1','a simple tel input', 'tel description' ),
-  array( 'url','url1','a simple url input', 'url description' ),
-  array( 'email','email1','a simple email input', 'email description' ),
-  array( 'number','number1','a simple number input', 'number description' )*/
-//);
-
-//if(isset($rep[0])) $rep[0]->add_field( clone($rep[1]) );
-
-//$rep[0]->add_field( AM_MBF::create('file','pc4','post checkboxes', 'some description...'));
-
-
-$rep = AM_MBF::create( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' );
-//$rep = AM_MBF::create('repeatable', 'rep1', 'Rep nr.1', 'desc...' );
-$rep->add_field( AM_MBF::create('checkbox_group','pc9','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
-$rep->add_field( AM_MBF::create('radio_group','pc6','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
-//$rep->add_field( AM_MBF::create('color','pc1','post checkboxes', 'some description...'));
-//$rep->add_field( AM_MBF::create('image','pc3','post checkboxes', 'some description...'));
-//$rep->add_field( AM_MBF::create('textarea','pc30','post checkboxes', 'some description...'));
-//$rep->add_field( AM_MBF::create( 'plaintext','pt2','Additional options','Choose the additional options with the checkbox(es) below.' ) );
-
-$mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
-$mb2->add_field( AM_MBF::create( 'chosen','sel1','<b>slider 1</b>', 'my description', array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3,'range'=>true ) ) );
-$mb2->add_field( AM_MBF::create( 'plaintext','pt1','Additional options','Choose the additional options with the checkbox(es) below.' ) );
-$mb2->add_field( AM_MBF::create( 'checkbox','cb1','<em>a checkbox field!!</em>','some description...' ) );
-$mb2->add_field( AM_MBF::create('text','text1','a simple text input') );
-//$rep->add_field($f);
-//$mb->add_field($f2);
-//$f->add_settings(array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3));
-//$f->set_post_type( 'pages' );
-
-
-
-//$f->add_options( array('one'=>'first','two'=>'second','three'=>'third','four'=>'fourth','five'=>'fifth') );
-//$f->is_multiple(true);
-
-
-$mb->add_field( $rep );
-
-
-//fu($mb);
-
-$cpt_note->assign_meta_box( array( $mb, $mb2 ) );
-
+// Register it all!!
 $cpt_note->register();
 
+// You expected more?!
 
-$new_mb = new AM_MB( 'new_meta_box_1', 'This is just a single AM_MB',
-  AM_MBF::create_batch(
-    // array( 'text','text1','a simple text input', 'text description' ),
-    // array( 'tel','tel1','a simple tel input', 'tel description' ),
-    // array( 'url','url1','a simple url input', 'url description' ),
-    // array( 'email','email1','a simple email input', 'email description' ),
-    // array( 'number','number1','a simple number input', 'number description' ),
-    array('image','pc3','post checkboxes', 'some description...'),
-    array('file','pc36','post checkboxes', 'some description...')
-  )
-);
-$new_mb->assign_post_type('post');
-$new_mb->register();
-
-
+*/
 
 ?>
