@@ -57,7 +57,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    *
    * @param null|AM_MBF|array $fields Object or array of AM_MBF fields to add to this repeatable field.
    */
-  public function __construct( $fields = null ) {
+  public function init( $fields = null ) {
     $this->add_fields( $fields );
   }
 
@@ -69,7 +69,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    * @param AM_MBF|array $fields Object or array of AM_MBF to add to this repeatable field.
    */
   public function add_fields( $fields ) {
-    if ( is_null( $fields ) ) {
+    if ( ! isset( $fields ) ) {
       return;
     }
 
@@ -78,17 +78,17 @@ class AM_MBF_Repeatable extends AM_MBF {
       $fields = array( $fields );
     }
 
-    foreach ( $fields as $rep_field ) {
-      if ( is_a( $rep_field, 'AM_MBF' ) && $rep_field->is_repeatable() ) {
+    foreach ( $fields as $field ) {
+      if ( $field instanceof AM_MBF && $field->is_repeatable() ) {
 
         // Set the new repeatable names and ids, set up as arrays for the repeatable field.
-        $rep_field->add_data( 'id', $rep_field->get_id() );
-        $rep_field->add_data( 'parent', $this->id );
+        $field->add_data( 'id', $field->get_id() );
+        $field->add_data( 'parent', $this->id );
 
         // This field is being repeated.
-        $rep_field->is_being_repeated( true );
+        $field->is_being_repeated( true );
 
-        $this->repeatable_fields[ $rep_field->get_id() ] = $rep_field;
+        $this->repeatable_fields[ $field->get_id() ] = $field;
       }
     }
   }
@@ -114,7 +114,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
-    if ( is_null( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
+    if ( ! isset( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
       // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->_value );
     } elseif ( $this->_value_new != $this->_value ) {
@@ -138,7 +138,7 @@ class AM_MBF_Repeatable extends AM_MBF {
         // Loop all fields.
         if ( is_array( $rep_fields ) ) {
           foreach ( $rep_fields as $rep_field ) {
-            if ( is_a( $rep_field, 'AM_MBF' ) ) {
+            if ( $rep_field instanceof AM_MBF ) {
               $rep_field->sanitize();
             }
           }

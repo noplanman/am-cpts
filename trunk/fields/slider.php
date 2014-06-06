@@ -32,7 +32,7 @@ class AM_MBF_Slider extends AM_MBF {
    *
    * @param null|array $settings Associative array of key-value pairs.
    */
-  public function __construct( $settings = null ) {
+  public function init( $settings = null ) {
     $this->add_settings( $settings );
   }
 

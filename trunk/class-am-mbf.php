@@ -88,7 +88,7 @@ abstract class AM_MBF {
    * The size of this field's input.
    *
    * @since 1.0.0
-   * @var integer
+   * @var string
    */
   protected $size = null;
 
@@ -165,6 +165,24 @@ abstract class AM_MBF {
   protected $value_new = null;
 
   /**
+   * Initialize the field with core data.
+   *
+   * @since 1.0.0
+   *
+   * @param  string $id    Field id to set.
+   * @param  string $label Field label to display.
+   * @param  string $desc  Field description to display.
+   */
+  final public function __construct( $id, $label, $desc ) {
+    $this->set_id( $id );
+    // Set raw id.
+    $this->_id = $this->id;
+    $this->set_name( $id ); // Set name to be the same as id.
+    $this->set_label( $label );
+    $this->set_desc( $desc );
+  }
+
+  /**
    * Create a new field object and return it after it has been initialized.
    * This method is a dynamic field factory that searches all field classes and creates the appropriate field object.
    *
@@ -185,23 +203,21 @@ abstract class AM_MBF {
      * Find all declared AM_MBF classes and create the respective field type object if found.
      */
     foreach ( get_declared_classes() as $mbf_class ) {
-      if ( 0 === strpos( $mbf_class, 'AM_MBF_' ) ) {
-        if ( $type == call_user_func( array( $mbf_class, 'get_type' ) ) ) {
+      if ( 0 === strpos( $mbf_class, 'AM_MBF_' ) && is_subclass_of( $mbf_class, 'AM_MBF' ) ) {
+        if ( method_exists( $mbf_class, 'get_type' ) && $type == call_user_func( array( $mbf_class, 'get_type' ) ) ) {
 
-          /**
-           *  Create a new class with the passed parameters.
-           *  These parameters are variable, so the first elements must be sliced off.
-           */
           $field = new ReflectionClass( $mbf_class );
-          if ( $field->getConstructor() ) {
-            $field = $field->newInstanceArgs( array_slice( func_get_args(), 4 ) );
-          } else {
-            $field = $field->newInstanceWithoutConstructor();
-          }
+          $field = $field->newInstanceArgs( array( $id, $label, $desc ) );
 
           // Make sure our field is legitimate and initialize it.
-          if ( is_subclass_of( $field, 'AM_MBF' ) ) {
-            $field->init( $id, $label, $desc );
+          if ( $field instanceof AM_MBF ) {
+            if ( method_exists( $field, 'init' ) ) {
+              /**
+               *  Call init method with the passed parameters.
+               *  These parameters are variable, so the first elements must be sliced off.
+               */
+              ( new ReflectionMethod( $field, 'init' ) )->invokeArgs( $field, array_slice( func_get_args(), 4 ) );
+            }
           } else {
             $field = null;
           }
@@ -242,24 +258,6 @@ abstract class AM_MBF {
   }
 
   /**
-   * Initialize the field with core data.
-   *
-   * @since 1.0.0
-   *
-   * @param  string $id    Field id to set.
-   * @param  string $label Field label to display.
-   * @param  string $desc  Field description to display.
-   */
-  final public function init( $id, $label, $desc ) {
-    $this->set_id( $id );
-    // Set raw id.
-    $this->_id = $this->id;
-    $this->set_name( $id ); // Set name to be the same as id.
-    $this->set_label( $label );
-    $this->set_desc( $desc );
-  }
-
-  /**
    * Get the type of this field. This is used by the create function to dynamically fetch the type.
    *
    * @since 1.0.0
@@ -269,9 +267,6 @@ abstract class AM_MBF {
   final public static function get_type() {
     return static::$type;
   }
-
-
-
 
 
   /**
@@ -356,6 +351,7 @@ abstract class AM_MBF {
     $this->post_sanitize();
   }
 
+
   /**
    * Set the meta box this field is assigned to.
    *
@@ -365,7 +361,7 @@ abstract class AM_MBF {
    */
   final public function set_meta_box( $meta_box ) {
     // Make sure the  right type is passed.
-    if ( is_a( $meta_box, 'AM_MB' ) ) {
+    if ( $meta_box instanceof AM_MB ) {
       $this->meta_box = $meta_box;
     }
   }
@@ -496,12 +492,10 @@ abstract class AM_MBF {
    *
    * @since 1.0.0
    *
-   * @param integer $size
+   * @param string $size
    */
   final public function set_size( $size ) {
-    if ( is_numeric( $size ) ) {
-      $this->size = intval( $size );
-    }
+    $this->size = $size;
   }
 
   /**
@@ -509,10 +503,10 @@ abstract class AM_MBF {
    *
    * @since 1.0.0
    *
-   * @return integer
+   * @return string
    */
   final public function get_size() {
-    return intval( $this->size );
+    return $this->size;
   }
 
   /**
@@ -546,7 +540,7 @@ abstract class AM_MBF {
    * @param object|null $value  Value string or null (if $key is array).
    */
   final public function add_data( $key, $value = null ) {
-    if ( is_array( $key ) && is_null( $value ) ) {
+    if ( is_array( $key ) && ! isset( $value ) ) {
 
       // Trim all keys and values and merge with data array.
       $keys   = array_map( 'trim', array_keys( $key ) );
@@ -566,7 +560,7 @@ abstract class AM_MBF {
    * @param string|array $keys Attributes to remove.
    */
   final public function remove_data( $keys ) {
-    if ( is_null( $keys ) ) {
+    if ( ! isset( $keys ) ) {
       return;
     }
 
@@ -709,7 +703,7 @@ abstract class AM_MBF {
    * @param object|null  $value Option value or null (if $key is array).
    */
   final public function add_option( $key, $value = null ) {
-    if ( is_array( $key ) && is_null( $value ) ) {
+    if ( is_array( $key ) && ! isset( $value ) ) {
 
       // Trim all keys and values and merge with data array.
       $keys   = array_map( 'trim', array_keys( $key ) );
@@ -741,7 +735,7 @@ abstract class AM_MBF {
    * @param string|array $keys Options to remove. (Single key, comma seperated keys, array of keys.)
    */
   final public function remove_option( $keys ) {
-    if ( is_null( $keys ) ) {
+    if ( ! isset( $keys ) ) {
       return;
     }
 
@@ -802,7 +796,7 @@ abstract class AM_MBF {
    * @param object|null  $value Setting value or null (if $key is array).
    */
   final public function add_setting( $key, $value = null ) {
-    if ( is_array( $key ) && is_null( $value ) ) {
+    if ( is_array( $key ) && ! isset( $value ) ) {
 
       // Trim all keys and values and merge with data array.
       $keys   = array_map( 'trim', array_keys( $key ) );
@@ -834,7 +828,7 @@ abstract class AM_MBF {
    * @param string|array $keys Settings to remove. (Single key, comma seperated keys, array of keys.)
    */
   final public function remove_setting( $keys ) {
-    if ( is_null( $keys ) ) {
+    if ( ! isset( $keys ) ) {
       return;
     }
 
@@ -960,7 +954,7 @@ abstract class AM_MBF {
    * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
-    if ( is_null( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
+    if ( ! isset( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
       // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->value );
     } elseif ( $this->value_new != $this->value ) {

@@ -197,7 +197,7 @@ class AM_Tax extends AM_CPT_Tax {
    * @param array|string $post_types Single post type, comma seperated post types, array of post types.
    */
   final public function assign_post_type( $post_types ) {
-    if ( is_null( $post_types ) ) {
+    if ( ! isset( $post_types ) ) {
       return;
     }
 
@@ -225,7 +225,7 @@ class AM_Tax extends AM_CPT_Tax {
    * @param array|string $post_types Single post type, comma seperated post types, array of post types.
    */
   final public function remove_post_type( $post_types ) {
-    if ( is_null( $post_types ) ) {
+    if ( ! isset( $post_types ) ) {
       return;
     }
 
@@ -344,7 +344,7 @@ class AM_CPT extends AM_CPT_Tax {
    * @param AM_Tax|array $taxonomies Object or array of AM_Tax to assign to this CPT.
    */
   final public function assign_taxonomy( $taxonomies ) {
-    if ( is_null( $taxonomies ) ) {
+    if ( ! isset( $taxonomies ) ) {
       return;
     }
 
@@ -355,7 +355,7 @@ class AM_CPT extends AM_CPT_Tax {
 
     // Assign all taxonomies.
     foreach ( $taxonomies as $taxonomy ) {
-      if ( is_a( $taxonomy, 'AM_Tax' ) ) {
+      if ( $taxonomy instanceof AM_Tax ) {
         $taxonomy->assign_post_type( $this->slug );
         $this->taxonomies[ $taxonomy->get_slug() ] = $taxonomy;
       }
@@ -370,7 +370,7 @@ class AM_CPT extends AM_CPT_Tax {
    * @param string|array $taxonomies Taxonomy / taxonomies to remove / unassign from this CPT. Single key, comma seperated keys, array of keys.
    */
   final public function remove_taxonomy( $taxonomies ) {
-    if ( is_null( $taxonomies ) ) {
+    if ( ! isset( $taxonomies ) ) {
       return;
     }
 
@@ -405,7 +405,7 @@ class AM_CPT extends AM_CPT_Tax {
    * @param AM_MB|array $meta_boxes Object or Array of AM_MB to add to this CPT.
    */
   final public function assign_meta_box( $meta_boxes ) {
-    if ( is_null( $meta_boxes ) ) {
+    if ( ! isset( $meta_boxes ) ) {
       return;
     }
 
@@ -416,7 +416,7 @@ class AM_CPT extends AM_CPT_Tax {
 
     // Add all meta boxes.
     foreach ( $meta_boxes as $meta_box ) {
-      if ( is_a( $meta_box, 'AM_MB' ) ) {
+      if ( $meta_box instanceof AM_MB ) {
         $meta_box->assign_post_type( $this->slug );
         $this->meta_boxes[ $meta_box->get_id() ] = $meta_box;
       }
@@ -431,7 +431,7 @@ class AM_CPT extends AM_CPT_Tax {
    * @param string|array $meta_boxes Meta box / boxes to remove / unassign from this CPT. Single key, comma seperated keys, array of keys.
    */
   final public function remove_meta_box( $meta_boxes ) {
-    if ( is_null( $meta_boxes ) ) {
+    if ( ! isset( $meta_boxes ) ) {
       return;
     }
 
@@ -459,7 +459,7 @@ class AM_CPT extends AM_CPT_Tax {
 
     $ret_meta_boxes = array();
 
-    if ( is_null( $meta_boxes ) ) {
+    if ( ! isset( $meta_boxes ) ) {
       // Return them all.
       $ret_meta_boxes = $this->meta_boxes;
     } else {

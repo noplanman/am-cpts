@@ -54,7 +54,7 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
    *
    * @param null|array $options Associative array of key-value pairs.
    */
-  public function __construct( $options = null ) {
+  public function init( $options = null ) {
     $this->add_options( $options );
   }
 
