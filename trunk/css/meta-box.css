@@ -185,17 +185,6 @@
   margin-top: 0;
 }
 
-/*????????*/
-.meta-box .meta-box-repeatable td p {
-  float: left;
-  margin: 0;
-  padding-bottom: 5px;
-}
-
-.meta-box .meta-box-repeatable td textarea {
-  /*width: 100%;*/
-}
-/*????????*/
 
 .mbf-type-textarea {
   max-width: 100%;
@@ -206,6 +195,13 @@
 .meta-box .meta-box-repeatable-add,
 .meta-box .meta-box-repeatable-remove {
   margin: 0 auto;
+}
+
+.meta-box .meta-box-repeatable-add.loading {
+  background-image: url("/381clean/wp-admin/images/wpspin_light.gif");
+  background-position: 0 0;
+  cursor: default;
+  pointer-events: none;
 }
 
 .meta-box .meta-box-repeatable .sort {

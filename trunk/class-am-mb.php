@@ -435,7 +435,7 @@ class AM_MB {
 
     // Begin the field table and loop.
     if ( $this->fields ) {
-      $out = sprintf( '<table class="form-table meta-box mb-id-%1$s">', esc_attr( $this->id ) );
+      $out = sprintf( '<table class="form-table meta-box mb-id-%1$s" data-id="%1$s">', esc_attr( $this->id ) );
 
     //  $errors = array();
       foreach ( $this->fields as $field ) {

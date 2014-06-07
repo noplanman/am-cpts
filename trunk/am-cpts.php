@@ -22,18 +22,48 @@ require_once 'class-am-mb.php';
 require_once 'class-am-mbf.php';
 
 
-
-
-
-
-
 /*
 
 Examples!!
 
  */
 
-/*
+
+/*$mb = new AM_MB( 'mb1', 'Metabox1', AM_MBF::create_batch(
+    array( 'repeatable', 'rep1', 'Repeatable 1', 'Repeatable 1 Description', AM_MBF::create_batch(
+        array( 'textarea', 'txt1', 'Rep Text 1', 'Rep Text 1 Description' ),
+        array( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ),
+        array( 'text','text1','Simple text input', 'Text description' ),
+        array( 'tel','tel1','Simple tel input', 'Tel description' )
+      )
+    ),
+    array( 'text', 'txt1', 'Text 1', 'Text 1 Description' )
+  )
+);
+$mb->assign_post_type( 'post' );
+$mb->register();
+*/
+
+$mb = new AM_MB( 'mb1', 'Metabox1' );
+$rep = AM_MBF::create( 'repeatable', 'rep1', 'Repeatable 1', 'Repeatable 1 Description' );
+$ta = AM_MBF::create( 'textarea', 'txt1', 'Rep Text 1', 'Rep Text 1 Description' );
+$ta->set_size('30,10');
+//$rep->add_field( $ta );
+$rep->add_field( AM_MBF::create( 'slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+//$rep->add_field( AM_MBF::create( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ) );
+$rep->add_field( AM_MBF::create( 'text','text1','Simple text input', 'Text description' ) );
+
+$mb->add_field( $rep );
+
+$mb->add_field( AM_MBF::create( 'text', 'txt1', 'Text 1', 'Text 1 Description' ) );
+
+$mb->assign_post_type( 'post' );
+$mb->register();
+
+
+
+return;
+
 
 // Easily extend the AM_ classes to create classes that fit exaclty your needs!
 class Tax_Note_Styles extends AM_Tax {
@@ -149,10 +179,73 @@ $mb_basic->add_field( 'number','number1','Simple number input', 'Number descript
 $cpt_note->assign_meta_box( $mb_basic );
 
 // Register it all!!
-$cpt_note->register();
+
+//$cpt_note->register();
 
 // You expected more?!
 
-*/
+
+
+//);
+
+//if(isset($rep[0])) $rep[0]->add_field( clone($rep[1]) );
+
+//$rep[0]->add_field( AM_MBF::create('file','pc4','post checkboxes', 'some description...'));
+
+
+$rep = AM_MBF::create( 'repeatable', 'rep1', 'Rep nr.1', 'desc...' );
+//$rep = AM_MBF::create('repeatable', 'rep1', 'Rep nr.1', 'desc...' );
+$rep->add_field( AM_MBF::create('checkbox_group','pc9','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
+$rep->add_field( AM_MBF::create('radio_group','pc6','post checkboxes', 'some description...', array('key1'=>'value number 1','key2'=>'value number 2','key3'=>'value number 3','key4'=>'value number 4','key5'=>'value number 5')) );
+$rep->add_field( AM_MBF::create('color','pc1','post checkboxes', 'some description...'));
+// $rep->add_field( AM_MBF::create('image','pc3','post checkboxes', 'some description...'));
+// $rep->add_field( AM_MBF::create('textarea','pc30','post checkboxes', 'some description...'));
+$rep->add_field( AM_MBF::create( 'plaintext','pt2','Additional options','Choose the additional options with the checkbox(es) below.' ) );
+
+$mb2 = new AM_MB( 'metabox2', 'Second Metabox' );
+$mb2->add_field( AM_MBF::create( 'chosen','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+$mb2->add_field( AM_MBF::create( 'plaintext','pt1','Additional options','Choose the additional options with the checkbox(es) below.' ) );
+$mb2->add_field( AM_MBF::create( 'checkbox','cb1','<em>a checkbox field!!</em>','some description...' ) );
+$mb2->add_field( AM_MBF::create('text','text1','a simple text input') );
+//$rep->add_field($f);
+//$mb->add_field($f2);
+//$f->add_settings(array('min'=>5,'max'=>100,'step'=>0.5,'handles'=>3));
+//$f->set_post_type( 'pages' );
+
+
+
+//$f->add_options( array('one'=>'first','two'=>'second','three'=>'third','four'=>'fourth','five'=>'fifth') );
+//$f->is_multiple(true);
+
+
+$mb_basic->add_field( $rep );
+$mb_basic->add_field( AM_MBF::create( 'slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+
+
+//fu($mb_basic);
+
+$cpt_note->assign_meta_box( array( $mb_basic, $mb2 ) );
+
+$cpt_note->register();
+
+
+$new_mb = new AM_MB( 'new_meta_box_1', 'This is just a single AM_MB',
+  AM_MBF::create_batch(
+    // array( 'text','text1','a simple text input', 'text description' ),
+    // array( 'tel','tel1','a simple tel input', 'tel description' ),
+    // array( 'url','url1','a simple url input', 'url description' ),
+    // array( 'email','email1','a simple email input', 'email description' ),
+    // array( 'number','number1','a simple number input', 'number description' ),
+    array('image','pc3','post checkboxes', 'some description...'),
+    array('file','pc36','post checkboxes', 'some description...'),
+    array('repeatable','rep','asdf','desc',
+      AM_MBF::create('color','pc1','post checkboxes', 'some description...')
+    )
+  )
+);
+$new_mb->assign_post_type('post');
+$new_mb->register();
+
+
 
 ?>
