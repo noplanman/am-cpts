@@ -59,6 +59,9 @@ class AM_MBF_Repeatable extends AM_MBF {
    */
   public function init( $fields = null ) {
     $this->add_fields( $fields );
+
+    //Register AJAX callback.
+    add_action( 'wp_ajax_output_repeatable_fields', array( $this, '_output_repeatable_fields' ) );
   }
 
   /**
@@ -196,8 +199,8 @@ class AM_MBF_Repeatable extends AM_MBF {
             $rep_field = clone( $rep_field );
 
             $rep_field->set_value( $values[ $rep_field_id ] );
-            $rep_field->set_id( $rep_field_id . '-' . $i );
-            $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
+//            $rep_field->set_id( $rep_field_id . '-' . $i );
+//            $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
 
             $new_values[ $rep_field_id ] = $rep_field;
           }
@@ -278,14 +281,83 @@ class AM_MBF_Repeatable extends AM_MBF {
   }
 
   /**
+   * AJAX callback for repeatable field output.
+   *
+   * @param  array $rep_fields Array of repeatable fields to display.
+   * @return string            Output.
+   */
+  public function _output_repeatable_fields() {
+
+    extract( $_POST );
+    if ( isset( $meta_box_id ) && $meta_box_id == $this->meta_box->get_id()
+      && isset( $repeatable_field_id ) && $repeatable_field_id == $this->id
+      && isset( $iterator_id ) ) {
+      echo $this->output_repeatable_fields( $iterator_id );
+    }
+
+    die();
+  }
+
+
+  public function output_repeatable_fields( $iterator, $rep_fields = null ) {
+
+    // Required to keep repeatable field templates clean.
+    $revert = false;
+
+    if ( ! isset( $rep_fields ) ) {
+      $revert = true;
+      $rep_fields = $this->repeatable_fields;
+    }
+
+    $field_outputs = sprintf( '
+      <tr>
+        <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort" title="%1$s"></span></td>
+        <td>',
+      esc_attr__( 'Click & Drag to rearrange field', 'am-cpts' )
+    );
+
+    // Output all repeatable fields.
+    foreach ( $rep_fields as $rep_field ) {
+      // Remember in case we need to revert.
+      $rep_field_id   = $rep_field->get_id();
+      $rep_field_name = $rep_field->get_name();
+
+      $rep_field->set_id( $rep_field_id . '-' . $iterator );
+      $rep_field->set_name( $this->id . '[' . $iterator . '][' . $rep_field_id .']' );
+
+      if ( 'plaintext' == $rep_field->get_type() ) {
+        $field_outputs .= $rep_field->output();
+      } else {
+        $field_outputs .= sprintf( '<span class="meta-box-field-label">%1$s</span>%2$s<span class="description">%3$s</span>',
+          $rep_field->get_label(),
+          $rep_field->output(),
+          $rep_field->get_desc()
+        );
+      }
+      // Revert if necessary.
+      if ( $revert ) {
+        $rep_field->set_id( $rep_field_id );
+        $rep_field->set_name( $rep_field_name );
+      }
+    }
+    $field_outputs .= sprintf( '
+        </td>
+        <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#" title="%1$s"></a></td>
+      </tr>',
+      esc_attr__( 'Remove field', 'am-cpts' )
+    );
+
+    return $field_outputs;
+  }
+
+  /**
    * Check AM_MBF for description.
    */
   public function output() {
 
-    $empty_fields_template = '';
-    $field_outputs = '';
-
     if ( $this->get_repeatable_fields() ) {
+
+      $field_outputs = '';
       $values_old = $this->value;
 
       // Make sure we have an array to work with.
@@ -295,57 +367,20 @@ class AM_MBF_Repeatable extends AM_MBF {
       // Clean away empty entries.
       $values_old = array_filter( array_values( $values_old ) );
 
-      for ( $i = -1; $i < count( $values_old ); $i++ ) {
-        $is_empty_template = ( -1 == $i );
-
-        $field_outputs .= sprintf( '
-          <tr%1$s>
-            <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort" title="%2$s"></span></td>
-            <td>',
-          ( $is_empty_template ) ? ' class="empty-fields-template" style="display:none;"' : '',
-          esc_attr__( 'Click & Drag to rearrange field', 'am-cpts' )
-        );
-
-        // Add all repeatable fields to empty template / Output all saved values.
-        $rep_fields = ( $is_empty_template ) ? $this->repeatable_fields : $values_old[ $i ];
-
-        // Output all repeatable fields.
-        foreach ( $rep_fields as $rep_field ) {
-          if ( 'plaintext' == $rep_field->get_type() ) {
-            $field_outputs .= $rep_field->output();
-          } else {
-            $field_outputs .= sprintf( '<span class="meta-box-field-label">%1$s</span>%2$s<span class="description">%3$s</span>',
-              $rep_field->get_label(),
-              $rep_field->output(),
-              $rep_field->get_desc()
-            );
-          }
-        }
-        $field_outputs .= sprintf( '
-            </td>
-            <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#" title="%1$s"></a></td>
-          </tr>',
-          esc_attr__( 'Remove field', 'am-cpts' )
-        );
-
-        // Save empty template seperately.
-        if ( $is_empty_template ) {
-          $empty_fields_template = $field_outputs;
-
-          // Reset the field outputs to prevent having the empty template with them.
-          $field_outputs = '';
-        }
+      $iterator = 0;
+      foreach ( $values_old as $value_old ) {
+        // Output all saved values.
+        $field_outputs .= $this->output_repeatable_fields( $iterator++, $value_old );
       }
 
       return sprintf( '
-        <table id="%1$s-repeatable" class="meta-box-repeatable" cellspacing="0">
+        <table id="%1$s-repeatable" class="meta-box-repeatable" cellspacing="0" data-id="%1$s" data-iid="%2$d">
           <thead>
             <tr>
               <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label" title="%4$s"></span></th>
               <th>%5$s</th>
               <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top" title="%6$s"></a></th>
             </tr>
-            %2$s
           </thead>
           <tfoot>
             <tr>
@@ -359,7 +394,7 @@ class AM_MBF_Repeatable extends AM_MBF {
           </tbody>
         </table>',
         esc_attr( $this->id ),
-        $empty_fields_template,
+        $iterator,
         $field_outputs,
         esc_attr__( 'Rearrange fields', 'am-cpts' ),
         esc_attr__( 'Repeatable Fields', 'am-cpts' ),

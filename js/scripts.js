@@ -22,13 +22,13 @@ jQuery( document ).ready( function( $ ) {
 
     // Set up the WP media frame.
     image_frame = wp.media({
-      title: $( this ).data( 'title' ),
+      title: $( this ).attr( 'data-title' ),
       multiple: false,
       library: {
         type: 'image'
       },
       button: {
-        text: $( this ).data( 'button' )
+        text: $( this ).attr( 'data-button' )
       }
     });
 
@@ -96,10 +96,10 @@ jQuery( document ).ready( function( $ ) {
 
     // Set up the WP media frame.
     file_frame = wp.media({
-      title: $( this ).data( 'title' ),
+      title: $( this ).attr( 'data-title' ),
       multiple: false,
       button: {
-          text: $( this ).data( 'button' )
+          text: $( this ).attr( 'data-button' )
       }
     });
 
@@ -175,7 +175,7 @@ jQuery( document ).ready( function( $ ) {
    */
   $( '.meta-box' ).on( 'focus', '.mbf-type-date', function( e ) {
     $( this ).datepicker({
-      dateFormat: $( this ).data( 'dateformat' )
+      dateFormat: $( this ).attr( 'data-dateformat' )
     });
   });
 
@@ -187,11 +187,11 @@ jQuery( document ).ready( function( $ ) {
     var hiddeninput = $( el ).next( 'input' );
 
     $( el ).slider({
-      min:    hiddeninput.data( 'min' ),
-      max:    hiddeninput.data( 'max' ),
-      step:   hiddeninput.data( 'step' ),
-      values: hiddeninput.data( 'values' ),
-      range:  hiddeninput.data( 'range' ),
+      min:    hiddeninput.attr( 'data-min' ),
+      max:    hiddeninput.attr( 'data-max' ),
+      step:   hiddeninput.attr( 'data-step' ),
+      values: hiddeninput.attr( 'data-values' ),
+      range:  hiddeninput.attr( 'data-range' ),
 
       create: function( event, ui ) {
         // Create all labels and add them to their respective handle.
@@ -226,20 +226,20 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Update all ids for repeatable fields in a given tbody.
    */
-  function update_repeatable_ids( tbody ) {
+  /*function update_repeatable_ids( tbody ) {
     var rows = $( 'tr', tbody );
     for ( var i = 0; i < rows.length; i++ ) {
       var row = rows[i];
       $( 'input, textarea, select', row ).each(function( index, el ) {
-        var id    = $( el ).data( 'id' );
-        var subid = $( el ).data( 'subid' );
+        var id    = $( el ).attr( 'data-id' );
+        var subid = $( el ).attr( 'data-subid' );
         if( null != subid ) {
           subid += ( '' != subid ) ? '-' : '';
         } else {
           subid = '';
         }
         var iid = id + '-' + subid + i;
-        var parent = $( el ).data( 'parent' );
+        var parent = $( el ).attr( 'data-parent' );
         $( el ).attr( 'name', parent + '[' + i +'][' + id + ']' + ( ( 'checkbox' == $( el ).attr( 'type' ) ) ? '[]' : '' ) );
         $( el ).attr( 'id', iid );
 
@@ -248,33 +248,65 @@ jQuery( document ).ready( function( $ ) {
           return ( null != c ) ? c.replace( /\bmbf-id-\S+-empty\b/g, 'mbf-id-' + iid ) : c;
         });
 
-        /* To keep in mind!
-        https://gist.github.com/peteboere/1517285
-        $(el).alterClass('mbf-id-*-empty', 'mbf-id-' + iid);
-        */
+        // To keep in mind!
+        //https://gist.github.com/peteboere/1517285
+        //$(el).alterClass('mbf-id-*-empty', 'mbf-id-' + iid);
+
       });
     }
-  }
+  }*/
+
 
   /**
-   * Add a new empty template row to the tbody of the table.
+   * Add a new empty template row to the tbody of the repeatable table.
    */
-  function add_the_empty_template( table ) {
-    var tbody = $( 'tbody', table );
-    $( '.empty-fields-template', table )
-      .clone()
-      .removeClass( 'empty-fields-template' )
-      .appendTo( tbody )
-      .show();
-    update_repeatable_ids( tbody );
+  function add_the_empty_template( mbr_table, pos ) {
+
+    var $mbr_table = $( mbr_table );
+
+    // Disable addition of rows.
+    $( '.meta-box-repeatable-add', $mbr_table ).addClass( 'loading' );
+
+    var $mbr_tbody = $( 'tbody', $mbr_table );
+    var meta_box_id = $mbr_table.closest( '.meta-box' ).attr( 'data-id' );
+    var iterator_id = parseInt( $mbr_table.attr( 'data-iid' ) );
+    var repeatable_field_id = $mbr_table.attr( 'data-id' );
+
+    var data = {
+      'action': 'output_repeatable_fields',
+      'iterator_id': iterator_id,
+      'meta_box_id': meta_box_id,
+      'repeatable_field_id': repeatable_field_id
+    };
+
+    // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+    $.post( ajaxurl, data, function(new_row) {
+      var $new_row = $( new_row );
+      if ( 'top' == pos ) {
+        $new_row.hide().prependTo( $mbr_tbody ).fadeIn();
+      } else if ( 'bottom' == pos ) {
+        $new_row.hide().appendTo( $mbr_tbody ).fadeIn();
+      }
+
+      // Handle all new 'chosen' select boxes.
+      if ( ! ! $.prototype.chosen ) {
+        $( 'select.chosen', $new_row ).chosen({ allow_single_deselect: true });
+      }
+
+      // Reenable addition of rows.
+      $( '.meta-box-repeatable-add', $mbr_table ).removeClass( 'loading' );
+
+      // Increase iterator id.
+      $mbr_table.attr( 'data-iid', iterator_id + 1 );
+    });
   }
 
   /**
    * If there are no repeatable fields saved, add an empty template.
    */
-  $( 'table.meta-box-repeatable' ).each(function( index, table ) {
+  $( '.meta-box-repeatable' ).each(function( index, table ) {
     if ( 0 == $( 'tbody tr', table ).length ) {
-      add_the_empty_template( table );
+      add_the_empty_template( table, 'top' );
     }
   });
 
@@ -285,25 +317,13 @@ jQuery( document ).ready( function( $ ) {
   $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-add', function( e ) {
     e.preventDefault();
 
-    var table   = $( this ).closest( 'table' );
-    var tbody   = $( 'tbody', table );
-    var new_row = $( '.empty-fields-template', table ).clone().removeClass( 'empty-fields-template' );
-
-    if ( 'top' == $( this ).data( 'position' ) ) {
-      $( new_row ).prependTo( tbody );
-    } else if ( 'bottom' == $( this ).data( 'position' ) ) {
-      $( new_row ).appendTo( tbody );
-    }
-
-    // Handle all new 'chosen' select boxes.
-    if ( ! ! $.prototype.chosen ) {
-      $( 'select.chosen', new_row ).chosen({ allow_single_deselect: true });
-    }
-
-    $( new_row ).show();
-
-    update_repeatable_ids( tbody );
+    // Add the new repeatable field row.
+    add_the_empty_template(
+      $( this ).closest( '.meta-box-repeatable' ),
+      $( this ).attr( 'data-position' )
+    );
   });
+
 
   /**
    * Remove a repeatable field row.
@@ -311,13 +331,17 @@ jQuery( document ).ready( function( $ ) {
   $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-remove', function( e ) {
     e.preventDefault();
 
-    var table = $( this ).closest( 'table' );
+    //    var $mbr_table   = $( this ).closest( '.meta-box-repeatable' );
 
-    $( this ).closest( 'tr' ).remove();
+    // Remove the current row.
+    $( this ).closest( 'tr' ).fadeOut('fast', function() {
+      $( this ).remove();
 
-    if ( 0 == $( 'tbody tr', table ).length ) {
-      add_the_empty_template( table );
-    }
+      // Make sure there's at least one there.
+      //if ( 0 == $( 'tbody tr', $mbr_table ).length ) {
+      //  add_the_empty_template( $mbr_table, 'top' )
+      //}
+    });
   });
 
 
@@ -351,7 +375,7 @@ jQuery( document ).ready( function( $ ) {
   */
   function reclick_radio() {
     // Get object of checked radio button names and values.
-    var radios = $( document ).data( 'radioshack' );
+    var radios = $( document ).attr( 'data-radioshack' );
     // Trigger a click on each corresponding radio button.
     for ( key in radios ) {
       $( 'input[name="' + key + '"]' ).filter( '[value="' + radios[ key ] + '"]' ).trigger( 'click' );
@@ -368,7 +392,7 @@ jQuery( document ).ready( function( $ ) {
     handle: '.sort',
     update: function( event, ui ) {
       // Wait a bit to let the radio buttons get re-clicked.
-      setTimeout(function() { update_repeatable_ids( this ); }, 20 );
+      //setTimeout(function() { update_repeatable_ids( this ); }, 20 );
     }
   });
 
