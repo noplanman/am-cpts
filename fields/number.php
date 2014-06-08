@@ -8,16 +8,22 @@
 class AM_MBF_Number extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'number';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'intval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return sprintf( '<input type="number" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',

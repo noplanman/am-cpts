@@ -9,8 +9,8 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Choose image button, saves the id and outputs a preview of the image.
    */
-  $( '.mbf-type-image' ).on( 'click', '.meta-box-upload-image-button, .meta-box-preview-image', function( e ) {
-    e.preventDefault();
+  $( '.mbf-type-image' ).on( 'click', '.meta-box-upload-image-button, .meta-box-preview-image', function( event ) {
+    event.preventDefault();
 
     image_div = $( this ).closest( 'div.meta-box-image' );
 
@@ -22,13 +22,13 @@ jQuery( document ).ready( function( $ ) {
 
     // Set up the WP media frame.
     image_frame = wp.media({
-      title: $( this ).attr( 'data-title' ),
+      title: $( this ).data( 'title' ),
       multiple: false,
       library: {
         type: 'image'
       },
       button: {
-        text: $( this ).attr( 'data-button' )
+        text: $( this ).data( 'button' )
       }
     });
 
@@ -61,8 +61,8 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Remove image link, removes the image id from the hidden field.
    */
-  $( '.mbf-type-image' ).on( 'click', '.meta-box-clear-image-button', function( e ) {
-    e.preventDefault();
+  $( '.mbf-type-image' ).on( 'click', '.meta-box-clear-image-button', function( event ) {
+    event.preventDefault();
 
     image_div = $( this ).closest( 'div.meta-box-image' );
 
@@ -83,8 +83,8 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Choose file button, saves the id and outputs the file name.
    */
-  $( '.mbf-type-file' ).on( 'click', '.meta-box-upload-file-button, .meta-box-file-icon', function( e ) {
-    e.preventDefault();
+  $( '.mbf-type-file' ).on( 'click', '.meta-box-upload-file-button, .meta-box-file-icon', function( event ) {
+    event.preventDefault();
 
     file_div = $( this ).closest( 'div.meta-box-file' );
 
@@ -96,10 +96,10 @@ jQuery( document ).ready( function( $ ) {
 
     // Set up the WP media frame.
     file_frame = wp.media({
-      title: $( this ).attr( 'data-title' ),
+      title: $( this ).data( 'title' ),
       multiple: false,
       button: {
-          text: $( this ).attr( 'data-button' )
+        text: $( this ).data( 'button' )
       }
     });
 
@@ -131,8 +131,8 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Remove file link, removes the file id from the hidden field.
    */
-  $( '.mbf-type-file' ).on( 'click', '.meta-box-clear-file-button', function( e ) {
-    e.preventDefault();
+  $( '.mbf-type-file' ).on( 'click', '.meta-box-clear-file-button', function( event ) {
+    event.preventDefault();
 
     file_div = $( this ).closest( 'div.meta-box-file' );
 
@@ -144,83 +144,100 @@ jQuery( document ).ready( function( $ ) {
   });
 
 
+
+
   /**
    * Set up colorpickers.
    */
-  $( '[id^="colorpicker-"]' ).each(function( index, el ) {
+/*  $( '[id^="colorpicker-"]' ).each(function( index, el ) {
     var id = $( el ).attr( 'id' ).substring(12); // 'colorpicker-' = 12
     $( el ).farbtastic( '#' + id ).hide();
   });
-
+*/
   /**
    * When input gets focus, show colorpicker.
    */
-  $( '.meta-box' ).on( 'focus', '.mbf-type-color', function( e ) {
+/*  $( '.meta-box' ).on( 'focus', '.mbf-type-color', function( event ) {
     var id = $( this ).attr( 'id' );
     $( this ).siblings( '[id^="colorpicker-"]' ).attr( 'id', 'colorpicker-' + id );
     $( '#colorpicker-' + id ).farbtastic( '#' + id ).show();
   });
-
+*/
   /**
    * When input loses focus, hide colorpicker.
    */
-  $( '.meta-box' ).on( 'blur', '.mbf-type-color', function( e ) {
+/*  $( '.meta-box' ).on( 'blur', '.mbf-type-color', function( event ) {
     var id = $( this ).attr( 'id' );
     $( '#colorpicker-' + id ).hide();
   });
+*/
+
 
 
   /**
    * Set up date pickers.
    */
-  $( '.meta-box' ).on( 'focus', '.mbf-type-date', function( e ) {
+  $( '.meta-box' ).on( 'focus', '.mbf-type-date', function( event ) {
     $( this ).datepicker({
       dateFormat: $( this ).attr( 'data-dateformat' )
     });
   });
 
 
+
+
   /**
-   * Set up sliders.
+   * Set up all sliders within parent.
    */
-  $( '.mbf-type-slider' ).each(function( index, el ) {
-    var hiddeninput = $( el ).next( 'input' );
+  function set_up_sliders( parent ) {
 
-    $( el ).slider({
-      min:    hiddeninput.attr( 'data-min' ),
-      max:    hiddeninput.attr( 'data-max' ),
-      step:   hiddeninput.attr( 'data-step' ),
-      values: hiddeninput.attr( 'data-values' ),
-      range:  hiddeninput.attr( 'data-range' ),
+    $( '.mbf-type-slider', parent ).each(function( index, el ) {
 
-      create: function( event, ui ) {
-        // Create all labels and add them to their respective handle.
-        var handles = $( '.ui-slider-handle', this );
-        for ( var i = 0; i < handles.length; i++ ) {
-          $( '<span></span>' )
-            .html( $( this ).slider( 'values', i ) )
-            .appendTo( handles[ i ] )
+      var $hiddeninput = $( el ).next( 'input' );
+
+      $( el ).slider({
+
+        min:    $hiddeninput.data( 'min' ),
+        max:    $hiddeninput.data( 'max' ),
+        step:   $hiddeninput.data( 'step' ),
+        values: $hiddeninput.data( 'values' ),
+        range:  $hiddeninput.data( 'range' ),
+
+        create: function( event, ui ) {
+          // Create all labels and add them to their respective handle.
+          var $handles = $( '.ui-slider-handle', this );
+          for ( var i = 0; i < $handles.length; i++ ) {
+            $( '<span></span>' )
+              .html( $( this ).slider( 'values', i ) )
+              .appendTo( $handles[ i ] )
+              .position({
+                my: 'center top',
+                at: 'center bottom+1',
+                of: $handles[ i ],
+                collision: 'none'
+              });
+          }
+        },
+        slide: function( event, ui ) {
+          $( 'span', ui.handle )
+            .html( ui.value )
             .position({
               my: 'center top',
               at: 'center bottom+1',
-              of: handles[ i ],
+              of: ui.handle,
               collision: 'none'
             });
+          $hiddeninput.val( ui.values );
         }
-      },
-      slide: function( event, ui ) {
-        $( 'span', ui.handle )
-          .html( ui.value )
-          .position({
-            my: 'center top',
-            at: 'center bottom+1',
-            of: ui.handle,
-            collision: 'none'
-          });
-        $( hiddeninput ).val( ui.values );
-      }
+      });
     });
-  });
+  }
+
+  function set_up_color_pickers( parent ) {
+    $( '.mbf-type-color', parent ).each(function( index, el ) {
+      $( el ).wpColorPicker();
+    });
+  }
 
 
   /**
@@ -268,10 +285,11 @@ jQuery( document ).ready( function( $ ) {
     $( '.meta-box-repeatable-add', $mbr_table ).addClass( 'loading' );
 
     var $mbr_tbody = $( 'tbody', $mbr_table );
-    var meta_box_id = $mbr_table.closest( '.meta-box' ).attr( 'data-id' );
-    var iterator_id = parseInt( $mbr_table.attr( 'data-iid' ) );
-    var repeatable_field_id = $mbr_table.attr( 'data-id' );
+    var meta_box_id = $mbr_table.closest( '.meta-box' ).data( 'id' );
+    var iterator_id = $mbr_table.data( 'iid' );
+    var repeatable_field_id = $mbr_table.data( 'id' );
 
+    // Data for AJAX call.
     var data = {
       'action': 'output_repeatable_fields',
       'iterator_id': iterator_id,
@@ -279,19 +297,18 @@ jQuery( document ).ready( function( $ ) {
       'repeatable_field_id': repeatable_field_id
     };
 
-    // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-    $.post( ajaxurl, data, function(new_row) {
+    // Since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php.
+    $.post( ajaxurl, data, function( new_row ) {
       var $new_row = $( new_row );
+
       if ( 'top' == pos ) {
         $new_row.hide().prependTo( $mbr_tbody ).fadeIn();
       } else if ( 'bottom' == pos ) {
         $new_row.hide().appendTo( $mbr_tbody ).fadeIn();
       }
 
-      // Handle all new 'chosen' select boxes.
-      if ( ! ! $.prototype.chosen ) {
-        $( 'select.chosen', $new_row ).chosen({ allow_single_deselect: true });
-      }
+      // Set up all fields for new row.
+      set_up_all_fields( $new_row );
 
       // Reenable addition of rows.
       $( '.meta-box-repeatable-add', $mbr_table ).removeClass( 'loading' );
@@ -302,20 +319,50 @@ jQuery( document ).ready( function( $ ) {
   }
 
   /**
+   * Handle all new 'chosen' select boxes within parent.
+   *
+   * @param {object} parent Parent container.
+   */
+  function set_up_chosen( parent ) {
+    if ( ! ! $.prototype.chosen ) {
+      $( 'select.chosen', parent ).chosen({ allow_single_deselect: true });
+    }
+  }
+
+  /**
+   * Set up all field types within parent.
+   *
+   * @param {object} parent Parent container.
+   */
+  function set_up_all_fields( parent ) {
+    set_up_sliders( parent );
+    set_up_chosen( parent );
+    set_up_color_pickers( parent );
+
+  }
+
+
+
+
+  $( '.meta-box' ).each(function( index, meta_box ) {
+    set_up_all_fields( meta_box );
+  });
+
+  /**
    * If there are no repeatable fields saved, add an empty template.
    */
   $( '.meta-box-repeatable' ).each(function( index, table ) {
-    if ( 0 == $( 'tbody tr', table ).length ) {
-      add_the_empty_template( table, 'top' );
-    }
+    // if ( 0 == $( 'tbody tr', table ).length ) {
+    //   add_the_empty_template( table, 'top' );
+    // }
   });
 
 
   /**
    * Add another repeatable field row.
    */
-  $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-add', function( e ) {
-    e.preventDefault();
+  $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-add', function( event ) {
+    event.preventDefault();
 
     // Add the new repeatable field row.
     add_the_empty_template(
@@ -328,8 +375,8 @@ jQuery( document ).ready( function( $ ) {
   /**
    * Remove a repeatable field row.
    */
-  $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-remove', function( e ) {
-    e.preventDefault();
+  $( '.meta-box-repeatable' ).on( 'click', '.meta-box-repeatable-remove', function( event ) {
+    event.preventDefault();
 
     //    var $mbr_table   = $( this ).closest( '.meta-box-repeatable' );
 
@@ -397,7 +444,34 @@ jQuery( document ).ready( function( $ ) {
   });
 
 
-  // Handle all 'chosen' select boxes.
-  if ( ! ! $.prototype.chosen )
-    $( 'select.chosen' ).chosen({ allow_single_deselect: true });
+
+  /**
+   * Fix for moving around meta boxes with TinyMCE editors in them without breaking them.
+   * see https://core.trac.wordpress.org/ticket/19173
+   *
+   * @param  {object} postbox         The postbox being moved around / reordered.
+   * @param  {boolean} creatingEditor If the editor is being created or destroyed.
+   */
+  function _triggerAllEditors( postbox, creatingEditor ) {
+    $( 'textarea.wp-editor-area', postbox ).each(function( index, el ) {
+      var editor = tinyMCE.EditorManager.get( el.id );
+      var is_active = $( this ).parents( '.tmce-active' ).length;
+
+      if ( creatingEditor ) {
+        if ( ! editor && is_active ) {
+          tinyMCE.execCommand( 'mceAddControl', true, el.id );
+        }
+      } else {
+        if ( editor && is_active ) {
+          editor.save();
+          tinyMCE.execCommand( 'mceRemoveControl', true, el.id );
+        }
+      }
+    });
+  }
+  // Part of fix from above.
+  $( '#poststuff' )
+    .on( 'sortstart', function( event ) { _triggerAllEditors( event.target, false ); })
+    .on( 'sortstop',  function( event ) { _triggerAllEditors( event.target, true ); });
+
 });

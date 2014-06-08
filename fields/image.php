@@ -11,16 +11,22 @@
 class AM_MBF_Image extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'image';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'intval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $image_id = ( intval( $this->value ) > 0 ) ? intval( $this->value ) : -1;

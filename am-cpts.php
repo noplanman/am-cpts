@@ -49,13 +49,19 @@ $rep = AM_MBF::create( 'repeatable', 'rep1', 'Repeatable 1', 'Repeatable 1 Descr
 $ta = AM_MBF::create( 'textarea', 'txt1', 'Rep Text 1', 'Rep Text 1 Description' );
 $ta->set_size('30,10');
 //$rep->add_field( $ta );
-$rep->add_field( AM_MBF::create( 'slider','sl1','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+//$mb->add_field( $ta );
+
+$rep->add_field( AM_MBF::create( 'slider','slid1','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4, 'range'=>false) ) );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
 //$rep->add_field( AM_MBF::create( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ) );
-$rep->add_field( AM_MBF::create( 'text','text1','Simple text input', 'Text description' ) );
+//$rep->add_field( AM_MBF::create( 'text','text1','Simple text input', 'Text description' ) );
 
 $mb->add_field( $rep );
 
-$mb->add_field( AM_MBF::create( 'text', 'txt1', 'Text 1', 'Text 1 Description' ) );
+//$mb->add_field( AM_MBF::create( 'slider','sl14','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+
+
+//$mb->add_field( AM_MBF::create( 'color','clr1','slider 1', 'my description' ) );
+//$mb->add_field( AM_MBF::create( 'editor','edt2','slider 1', 'my description' ) );
 
 $mb->assign_post_type( 'post' );
 $mb->register();

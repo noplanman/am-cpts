@@ -8,16 +8,22 @@
 class AM_MBF_PostCheckboxes extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'post_checkboxes';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'intval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     // Backup id.
@@ -64,16 +70,22 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
 class AM_MBF_PostSelect extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'post_select';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'intval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
@@ -120,16 +132,22 @@ class AM_MBF_PostSelect extends AM_MBF {
 class AM_MBF_PostChosen extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'post_chosen';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'intval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $ret = sprintf( '<select data-placeholder="%3$s" name="%2$s[]" id="%1$s"%4$s%5$s%6$s>',

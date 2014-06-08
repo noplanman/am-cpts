@@ -8,11 +8,15 @@
 class AM_MBF_Select extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'select';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
 
@@ -29,6 +33,8 @@ class AM_MBF_Select extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $ret = sprintf( '<select name="%2$s" id="%1$s"%3$s%4$s%5$s>',
@@ -62,11 +68,15 @@ class AM_MBF_Select extends AM_MBF {
 class AM_MBF_Chosen extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'chosen';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
 
@@ -83,6 +93,8 @@ class AM_MBF_Chosen extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     // Add placeholder value used by chosen.

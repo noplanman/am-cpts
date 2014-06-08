@@ -10,11 +10,15 @@
 class AM_MBF_Date extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'date';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
 
@@ -31,6 +35,8 @@ class AM_MBF_Date extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     // Set dateformat data.

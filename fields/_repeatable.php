@@ -11,11 +11,15 @@
 class AM_MBF_Repeatable extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'repeatable';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $is_repeatable = false;
 
@@ -65,6 +69,33 @@ class AM_MBF_Repeatable extends AM_MBF {
   }
 
   /**
+   * Set saving flag for all repeatable fields. Check AM_MBF for description.
+   *
+   * @since 1.0.2
+   */
+  public function is_saving( $is_saving = null ) {
+    if ( is_bool( $is_saving ) ) {
+      $this->is_saving = $is_saving;
+
+      // Set all current fields.
+      foreach ( (array) $this->value as $rep_fields ) {
+        foreach ( $rep_fields as $rep_field ) {
+          $rep_field->is_saving( $is_saving );
+        }
+      }
+
+      // Set all new fields.
+      foreach ( (array) $this->value_new as $rep_fields ) {
+        foreach ( $rep_fields as $rep_field ) {
+          $rep_field->is_saving( $is_saving );
+        }
+      }
+    }
+    return $this->is_saving;
+  }
+
+
+  /**
    * Add fields to this repeatable field.
    *
    * @since 1.0.0
@@ -88,8 +119,8 @@ class AM_MBF_Repeatable extends AM_MBF {
         $field->add_data( 'id', $field->get_id() );
         $field->add_data( 'parent', $this->id );
 
-        // This field is being repeated.
-        $field->is_being_repeated( true );
+        // Set this field's parent.
+        $field->set_parent( $this );
 
         $this->repeatable_fields[ $field->get_id() ] = $field;
       }
@@ -352,6 +383,8 @@ class AM_MBF_Repeatable extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
 

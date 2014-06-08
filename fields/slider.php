@@ -12,18 +12,24 @@
 class AM_MBF_Slider extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'slider';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'floatval';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
-  protected $is_repeatable = false;
+  protected $is_repeatable = true;
 
   /**
    * Constructor to optionally define settings.
@@ -72,15 +78,19 @@ class AM_MBF_Slider extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
 
     // Get and assign all settings.
-    $min = $this->get_setting( 'min', 0 );
-    $max = $this->get_setting( 'max', 100 );
-    $step = $this->get_setting( 'step', 1 );
-    $range = ( $this->get_setting( 'range', false ) ) ? 'true' : 'false';
-    $handles = $this->get_setting( 'handles', 1 );
+    $min     = $this->get_setting( 'min', 0 );
+    $max     = $this->get_setting( 'max', 100 );
+    $step    = $this->get_setting( 'step', 1 );
+    $range   = $this->get_setting( 'range', false );
+
+    // If range is active, only 2 handles.
+    $handles = ( $range ) ? 2 : $this->get_setting( 'handles', 1 );
 
     $values = $this->get_value();
 
@@ -105,7 +115,7 @@ class AM_MBF_Slider extends AM_MBF {
       'max' => $max,
       'step' => $step,
       'values' => '[' . $values . ']',
-      'range' => $range
+      'range' => ( $range ) ? 'true' : 'false'
     ) );
 
     return sprintf( '

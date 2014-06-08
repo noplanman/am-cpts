@@ -8,16 +8,22 @@
 class AM_MBF_Email extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'email';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field'; // 'email' sanitizer removes text if it's not a correct email address.
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return sprintf( '<input type="email" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',
