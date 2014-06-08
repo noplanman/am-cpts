@@ -8,16 +8,22 @@
 class AM_MBF_Checkbox extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'checkbox';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'boolean';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return sprintf( '<label><input type="checkbox" name="%2$s" id="%1$s" value="1"%4$s%5$s%6$s />&nbsp;%3$s</label>',
@@ -39,11 +45,15 @@ class AM_MBF_Checkbox extends AM_MBF {
 class AM_MBF_CheckboxGroup extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'checkbox_group';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
 
@@ -60,6 +70,8 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $ret = '<ul class="meta-box-items">';
@@ -67,7 +79,7 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
     foreach ( $this->options as $opt_value => $opt_label ) {
       // Add option value before iteration id.
       $new_id = '';
-      if ( $this->is_being_repeated ) {
+      if ( $this->has_parent() ) {
         $id_parts = explode( '-', $this->id );
         array_splice( $id_parts, -1, 0, $opt_value );
         $new_id = implode( '-', $id_parts );

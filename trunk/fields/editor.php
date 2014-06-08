@@ -3,21 +3,29 @@
 /**
  * A TinyMCE editor.
  *
+ * @todo Make repeatable? see https://core.trac.wordpress.org/ticket/19173
+ *
  * @since 1.0.0
  */
 class AM_MBF_Editor extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'editor';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
-  protected $sanitizer = 'textarea';
+  protected $sanitizer = 'none';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $is_repeatable = false;
 
@@ -34,6 +42,8 @@ class AM_MBF_Editor extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $this->add_setting( 'textarea_name', $this->name );

@@ -8,16 +8,22 @@
 class AM_MBF_Text extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'text';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return sprintf( '<input type="text" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',

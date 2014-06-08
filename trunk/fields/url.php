@@ -8,16 +8,22 @@
 class AM_MBF_Url extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'url';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'text_field'; // 'url' sanitizer removes text if it's not a correct email address.
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return sprintf( '<input type="url" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',

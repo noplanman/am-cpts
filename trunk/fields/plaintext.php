@@ -8,11 +8,15 @@
 class AM_MBF_PlainText extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'plaintext';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     return ( isset( $this->label ) && '' != $this->label )
@@ -25,6 +29,8 @@ class AM_MBF_PlainText extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function save( $post_id ) {
     // Nothing to be saved...

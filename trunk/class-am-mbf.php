@@ -24,6 +24,7 @@ abstract class AM_MBF {
    * The meta box object this field is assigned to.
    *
    * @since 1.0.0
+   *
    * @var AM_MB
    */
   protected $meta_box = null;
@@ -32,6 +33,7 @@ abstract class AM_MBF {
    * The field type.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected static $type = ''; // Must be assigned by each field class individually!
@@ -40,6 +42,7 @@ abstract class AM_MBF {
    * The field's raw unique id, which is only set on construction.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $_id = '';
@@ -48,6 +51,7 @@ abstract class AM_MBF {
    * The field's unique id.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $id = '';
@@ -56,6 +60,7 @@ abstract class AM_MBF {
    * The label of the field.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $label = '';
@@ -64,6 +69,7 @@ abstract class AM_MBF {
    * The description of the field.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $desc = '';
@@ -72,6 +78,7 @@ abstract class AM_MBF {
    * The sanitizer to use for this field.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $sanitizer = 'text_field';
@@ -80,6 +87,7 @@ abstract class AM_MBF {
    * Check if this field is being saved or loaded (required for sanitization).
    *
    * @since 1.0.0
+   *
    * @var boolean
    */
   protected $is_saving = false;
@@ -88,6 +96,7 @@ abstract class AM_MBF {
    * The size of this field's input.
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $size = null;
@@ -96,6 +105,7 @@ abstract class AM_MBF {
    * Additional data to be assigned to this field. Key-Value pair of 'data-' HTML tags.
    *
    * @since 1.0.0
+   *
    * @var array
    */
   protected $data = array();
@@ -104,6 +114,7 @@ abstract class AM_MBF {
    * Check / set if this field allows multiple selection.
    *
    * @since 1.0.0
+   *
    * @var boolean
    */
   protected $is_multiple = false;
@@ -112,22 +123,25 @@ abstract class AM_MBF {
    * Define if this field type is repeatable.
    *
    * @since 1.0.0
+   *
    * @var bool
    */
   protected $is_repeatable = true;
 
   /**
-   * Define if this field is being repeated.
+   * The repeatable parent field of this field.
    *
-   * @since 1.0.0
-   * @var bool
+   * @since 1.0.2
+   *
+   * @var AM_MBF
    */
-  protected $is_being_repeated = false;
+  protected $parent = false;
 
   /**
    * The post type this field handles. (For all post fields.)
    *
    * @since 1.0.0
+   *
    * @var string
    */
   protected $post_type = '';
@@ -136,6 +150,7 @@ abstract class AM_MBF {
    * This field's options (Key-Value), used for checkbox- and radio groups.
    *
    * @since 1.0.0
+   *
    * @var array
    */
   protected $options = array();
@@ -144,6 +159,7 @@ abstract class AM_MBF {
    * Specific settings related to this field.
    *
    * @since 1.0.0
+   *
    * @var array
    */
   protected $settings = array();
@@ -152,6 +168,7 @@ abstract class AM_MBF {
    * The currently set meta value.
    *
    * @since 1.0.0
+   *
    * @var string|array
    */
   protected $value = null;
@@ -160,6 +177,7 @@ abstract class AM_MBF {
    * The new meta value to be set.
    *
    * @since 1.0.0
+   *
    * @var string|array
    */
   protected $value_new = null;
@@ -306,6 +324,8 @@ abstract class AM_MBF {
       $values_sanitized = array();
       foreach ( $values_to_sanitize as $key => $value ) {
         switch ( $this->sanitizer ) {
+          case 'none':
+            $values_sanitized[ $key ] = $value; break;
           case 'absint':
             $values_sanitized[ $key ] = absint( $value ); break;
           case 'intval':
@@ -624,7 +644,7 @@ abstract class AM_MBF {
    * @param  bool|null $is_saving If bool, set the passed value, else return the set value.
    * @return boolean
    */
-  final public function is_saving( $is_saving = null ) {
+  public function is_saving( $is_saving = null ) {
     if ( is_bool( $is_saving ) ) {
       $this->is_saving = $is_saving;
     }
@@ -658,19 +678,40 @@ abstract class AM_MBF {
   }
 
   /**
-   * Get or set the being repeated flag. Defines if this field is being repeated within a repeatable field.
+   * Set this field's parent repeatable field.
    *
-   * @since 1.0.0
+   * @since 1.0.2
    *
-   * @param  bool|null $is_being_repeated If bool, set the passed value, else return the set value.
+   * @param AM_MBF $parent The parent repeatable field.
+   */
+  final public function set_parent( $parent ) {
+    if ( $parent instanceof AM_MBF && 'repeatable' == $parent->get_type() ) {
+      $this->parent = $parent;
+    }
+  }
+
+  /**
+   * Get this field's parent repeatable field.
+   *
+   * @since 1.0.2
+   *
+   * @return object The parent repeatable field.
+   */
+  final public function get_parent() {
+    return $this->parent;
+  }
+
+  /**
+   * Check if this field has a parent repeatable field.
+   *
+   * @since 1.0.2
+   *
    * @return boolean
    */
-  final public function is_being_repeated( $is_being_repeated = null ) {
-    if ( is_bool( $is_being_repeated ) ) {
-      $this->is_being_repeated = $is_being_repeated;
-    }
-    return $this->is_being_repeated;
+  final public function has_parent() {
+    return isset( $this->parent );
   }
+
 
   /**
    * Set the post type for this field, if it relies on post type information.

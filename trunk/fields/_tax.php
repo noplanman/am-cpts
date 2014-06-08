@@ -10,11 +10,15 @@
 class AM_MBF_TaxSelect extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'tax_select';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'sanitize_title';
 
@@ -29,6 +33,8 @@ class AM_MBF_TaxSelect extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $terms = get_terms( $this->id, 'get=all' );
@@ -79,11 +85,15 @@ class AM_MBF_TaxSelect extends AM_MBF {
 class AM_MBF_TaxCheckboxes extends AM_MBF {
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected static $type = 'tax_checkboxes';
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   protected $sanitizer = 'sanitize_title';
 
@@ -98,6 +108,8 @@ class AM_MBF_TaxCheckboxes extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @since 1.0.0
    */
   public function output() {
     $terms = get_terms( $this->id, 'get=all' );

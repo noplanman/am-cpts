@@ -334,8 +334,8 @@ class AM_MB {
         $enq_js[] = 'jquery-ui-slider';
       }
       if ( in_array( 'color', $used_field_types ) ) {
-       $enq_js[] = 'farbtastic';
-       $enq_css[] = 'farbtastic';
+       $enq_js[] = 'wp-color-picker';
+       $enq_css[] = 'wp-color-picker';
       }
       if ( array_intersect( array( 'image', 'file' ), $used_field_types ) ) {
         $enq_js[] = 'media-upload';
@@ -360,7 +360,7 @@ class AM_MB {
         wp_enqueue_style( 'meta-box', $plugin_dir_url . 'css/meta-box.css' );
       }
 
-      if ( array_intersect( array( 'date', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_field_types )
+      if ( array_intersect( array( 'date', 'editor', 'slider', 'color', 'chosen', 'post_chosen', 'repeatable', 'image', 'file' ), $used_field_types )
         && ! wp_script_is( 'meta-box' ) ) {
         wp_enqueue_script( 'meta-box', $plugin_dir_url . 'js/scripts.js', array( 'jquery' ), null, true );
       }
