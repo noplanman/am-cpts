@@ -3,6 +3,11 @@
 /**
  * Checkboxes of posts.
  *
+ * Valid settings:
+ * order     Direction to order posts.
+ * orderby   Field to order posts by.
+ * post_type Get posts from this post type.
+ *
  * @since 1.0.0
  */
 class AM_MBF_PostCheckboxes extends AM_MBF {
@@ -21,15 +26,18 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
-   * Constructor to optionally set post type.
+   * Constructor to optionally set post type and settings.
    *
    * @since 1.1.0
    *
    * @param string $post_type Post type for posts to load.
+   * @param null|array $settings Associative array of key-value pairs.
    */
-  public function init( $post_type = 'post' ) {
-    $this->set_post_type( $post_type );
+  public function init( $post_type = 'post', $settings = null ) {
+    $this->add_setting( 'post_type', $post_type );
+    $this->add_settings( $settings );
   }
+
 
   /**
    * Check AM_MBF for description.
@@ -38,19 +46,28 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
    */
   public function output() {
     // Make sure the post type is set correctly.
+    $post_type = $this->get_setting( 'post_type' );
     $post_type_object = null;
+
+    // Warning message.
     $warning = null;
-    if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
+
+    if ( ! isset( $post_type ) || '' == $post_type ) {
       return __( 'Post type has not been set.', 'am-cpts' );
-    } elseif ( ! $post_type_object = get_post_type_object( $this->post_type ) ) {
-      $warning = __( sprintf( 'Post type "%1$s" is not registered.', $this->post_type ), 'am-cpts' );
+    } elseif ( ! $post_type_object = get_post_type_object( $post_type ) ) {
+      $warning = __( sprintf( 'Post type "%1$s" is not registered.', $post_type ), 'am-cpts' );
     }
 
     // Backup id because it gets modified for each checkbox.
     $id_bkp = $this->id;
 
     // Get all posts for the current post type.
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1 ) );
+    $posts = get_posts( array(
+      'post_type' => $post_type,
+      'posts_per_page' => -1,
+      'orderby' => $this->get_setting( 'orderby', 'none' ),
+      'order'   => $this->get_setting( 'order', 'ASC' )
+    ) );
 
     $ret = '';
     if ( ! empty( $posts ) ) {
@@ -71,14 +88,13 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
     } elseif( isset( $post_type_object->labels->not_found ) ) {
       $ret = $post_type_object->labels->not_found;
     } else {
-      // Should theoretically never get here, but just in case...
-      $ret = __( sprintf( 'No posts of type "%1$s" found.', $this->post_type ), 'am-cpts' );
+      $ret = __( sprintf( 'No posts of type "%1$s" found.', $post_type ), 'am-cpts' );
     }
 
     if ( isset( $post_type_object->label ) ) {
       $ret .= sprintf( '<span class="description alignright"><a href="%2$s" target="_blank">Manage %1$s</a></span>',
         $post_type_object->label,
-        admin_url( 'edit.php?post_type=' . $this->post_type )
+        admin_url( 'edit.php?post_type=' . $post_type )
       );
     } elseif ( isset( $warning ) ) {
       $ret .= sprintf( '<span class="description alignright">%1$s</span>',
@@ -95,6 +111,14 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
 
 /**
  * Drop down of posts.
+ *
+ * Valid settings:
+ * chosen    Display this drop down as a 'chosen' drop down.
+ * force     Force a selection.
+ * multiple  Multiple selection possible.
+ * order     Direction to order posts.
+ * orderby   Field to order posts by.
+ * post_type Get posts from this post type.
  *
  * @since 1.0.0
  */
@@ -114,14 +138,27 @@ class AM_MBF_PostSelect extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
-   * Constructor to optionally set post type.
+   * Constructor to optionally set post type and settings.
    *
    * @since 1.1.0
    *
    * @param string $post_type Post type for posts to load.
+   * @param null|array $settings Associative array of key-value pairs.
    */
-  public function init( $post_type = 'post' ) {
-    $this->set_post_type( $post_type );
+  public function init( $post_type = 'post', $settings = null ) {
+    $this->add_setting( 'post_type', $post_type );
+    $this->add_settings( $settings );
+  }
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.1.0
+   */
+  public function get_sub_type() {
+    if ( $this->get_setting( 'chosen' ) ) {
+      return 'post_chosen';
+    }
   }
 
   /**
@@ -131,27 +168,44 @@ class AM_MBF_PostSelect extends AM_MBF {
    */
   public function output() {
     // Make sure the post type is set correctly.
+    $post_type = $this->get_setting( 'post_type' );
     $post_type_object = null;
+
+    // Warning message.
     $warning = null;
-    if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
+
+    if ( ! isset( $post_type ) || '' == $post_type ) {
       return __( 'Post type has not been set.', 'am-cpts' );
-    } elseif ( ! $post_type_object = get_post_type_object( $this->post_type ) ) {
-      $warning = __( sprintf( 'Post type "%1$s" is not registered.', $this->post_type ), 'am-cpts' );
+    } elseif ( ! $post_type_object = get_post_type_object( $post_type ) ) {
+      $warning = __( sprintf( 'Post type "%1$s" is not registered.', $post_type ), 'am-cpts' );
     }
 
     // Get all posts for the current post type.
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
+    $posts = get_posts( array(
+      'post_type' => $post_type,
+      'posts_per_page' => -1,
+      'orderby' => $this->get_setting( 'orderby', 'name' ),
+      'order'   => $this->get_setting( 'order', 'ASC' )
+    ) );
 
     $ret = '';
     if ( ! empty( $posts ) ) {
+      // Check if this is a 'chosen' drop down.
+      $chosen = $this->get_setting( 'chosen', false );
+
+      // Add placeholder value used by chosen.
+      if ( $chosen ) {
+        $this->add_data( 'placeholder', __( 'Select One', 'am-cpts' ) );
+      }
+
       $ret = sprintf( '<select name="%2$s" id="%1$s"%3$s%4$s%5$s>',
         esc_attr( $this->id ),
         esc_attr( $this->name ),
-        ( $this->is_multiple ) ? ' multiple="multiple"' : '',
-        $this->get_classes(),
+        ( $this->get_setting( 'multiple' ) ) ? ' multiple="multiple"' : '',
+        $this->get_classes( ( $chosen ) ? 'chosen' : '' ),
         $this->get_data_atts()
       );
-      if ( ! $this->is_multiple ) {
+      if ( ! $this->get_setting( 'multiple' ) && ! $this->get_setting( 'force', false ) ) {
         $ret .= '<option value=""></option>'; // Select One
       }
 
@@ -166,108 +220,13 @@ class AM_MBF_PostSelect extends AM_MBF {
     } elseif ( isset( $post_type_object->labels->not_found ) ) {
       $ret = $post_type_object->labels->not_found;
     } else {
-      // Should theoretically never get here, but just in case...
-      $ret = __( sprintf( 'No posts of type "%1$s" found.', $this->post_type ), 'am-cpts' );
+      $ret = __( sprintf( 'No posts of type "%1$s" found.', $post_type ), 'am-cpts' );
     }
 
     if ( isset( $post_type_object->label ) ) {
       $ret .= sprintf( '<span class="description alignright"><a href="%2$s" target="_blank">Manage %1$s</a></span>',
         $post_type_object->label,
-        admin_url( 'edit.php?post_type=' . $this->post_type )
-      );
-    } elseif ( isset( $warning ) ) {
-      $ret .= sprintf( '<span class="description alignright">%1$s</span>',
-        $warning
-      );
-    }
-
-    return $ret;
-  }
-}
-
-/**
- * 'Chosen' drop down of posts.
- *
- * @since 1.0.0
- */
-class AM_MBF_PostChosen extends AM_MBF {
-  /**
-   * Check AM_MBF for description.
-   *
-   * @since 1.0.0
-   */
-  protected static $type = 'post_chosen';
-
-  /**
-   * Check AM_MBF for description.
-   *
-   * @since 1.0.0
-   */
-  protected $sanitizer = 'intval';
-
-  /**
-   * Constructor to optionally set post type.
-   *
-   * @since 1.1.0
-   *
-   * @param string $post_type Post type for posts to load.
-   */
-  public function init( $post_type = 'post' ) {
-    $this->set_post_type( $post_type );
-  }
-
-  /**
-   * Check AM_MBF for description.
-   *
-   * @since 1.0.0
-   */
-  public function output() {
-    // Make sure the post type is set correctly.
-    $post_type_object = null;
-    $warning = null;
-    if ( ! isset( $this->post_type ) || '' == $this->post_type ) {
-      return __( 'Post type has not been set.', 'am-cpts' );
-    } elseif ( ! $post_type_object = get_post_type_object( $this->post_type ) ) {
-      $warning = __( sprintf( 'Post type "%1$s" is not registered.', $this->post_type ), 'am-cpts' );
-    }
-
-    // Get all posts for the current post type.
-    $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
-
-    $ret = '';
-    if ( ! empty( $posts ) ) {
-      $ret = sprintf( '<select data-placeholder="%3$s" name="%2$s" id="%1$s"%4$s%5$s%6$s>',
-        esc_attr( $this->id ),
-        esc_attr( $this->name ),
-        esc_attr__( 'Select One', 'am-cpts' ),
-        ( $this->is_multiple ) ? ' multiple="multiple"' : '',
-        $this->get_classes( 'chosen' ),
-        $this->get_data_atts()
-      );
-      if ( ! $this->is_multiple ) {
-        $ret .= '<option value=""></option>'; // Select One
-      }
-
-      $posts = get_posts( array( 'post_type' => $this->post_type, 'posts_per_page' => -1, 'orderby' => 'name', 'order' => 'ASC' ) );
-      foreach ( $posts as $item ) {
-        $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
-          esc_attr( $item->ID ),
-          esc_html( $item->post_title ),
-          selected( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false )
-        );
-      }
-      $ret .= '</select>';
-    } elseif ( isset( $post_type_object->labels->not_found ) ) {
-      $ret = $post_type_object->labels->not_found;
-    } else {
-      // Should theoretically never get here, but just in case...
-      $ret = __( sprintf( 'No posts of type "%1$s" found.', $this->post_type ), 'am-cpts' );
-    }
-
-    if ( isset( $post_type_object->label ) ) {
-      $ret .= sprintf( '<span class="description alignright"><a href="%2$s" target="_blank">Manage %1$s</a></span>',
-        $post_type_object->label,
-        admin_url( 'edit.php?post_type=' . $this->post_type )
+        admin_url( 'edit.php?post_type=' . $post_type )
       );
     } elseif ( isset( $warning ) ) {
       $ret .= sprintf( '<span class="description alignright">%1$s</span>',

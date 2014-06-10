@@ -302,7 +302,7 @@ jQuery( document ).ready( function( $ ) {
    */
   function set_up_chosen( parent ) {
     if ( ! ! $.prototype.chosen ) {
-      $( 'select.chosen', parent ).chosen({ allow_single_deselect: true });
+      $( 'select.chosen', parent ).chosen();
     }
   }
 
