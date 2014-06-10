@@ -195,7 +195,14 @@ class AM_MB {
         // If repeatable, get those types too, recursively.
         $types = array_merge( $types, $this->get_types( $field->get_repeatable_fields(), $types ) );
       }
-      $types[] = $field->get_type();
+
+      $new_type = $field->get_type();
+      // Check if this field has a special sub type, use that instead.
+      if ( $new_sub_type = $field->get_sub_type() ) {
+        $new_type = $new_sub_type;
+      }
+
+      $types[] = $new_type;
     }
 
     return array_unique( $types );
@@ -389,25 +396,25 @@ class AM_MB {
    * @since 1.0.0
    */
   final public function _save( $post_id ) {
-    // Make sure the post type is correct.
-    if ( ! in_array( get_post_type(), $this->post_types ) ) {
+    // Check permissions before saving.
+    if (
+      // Make sure the post type is correct.
+      ! in_array( get_post_type(), $this->post_types )
+
+      // Verify nonce.
+      || ! isset( $_POST['am_meta_box_nonce_field'] )
+      || ! wp_verify_nonce( $_POST['am_meta_box_nonce_field'],  'am_meta_box_nonce_action' )
+
+      // Check autosave state.
+      || defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE
+
+      // Check user permissions.
+      || ( 'page' == $_POST['post_type'] && ! current_user_can( 'edit_page', $post_id ) )
+      || ! current_user_can( 'edit_post', $post_id )
+    ) {
       return $post_id;
     }
 
-    // Verify nonce.
-    if ( ! ( isset( $_POST['am_meta_box_nonce_field'] ) && wp_verify_nonce( $_POST['am_meta_box_nonce_field'],  'am_meta_box_nonce_action' ) ) ) {
-      return $post_id;
-    }
-
-    // Check autosave state.
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-      return $post_id;
-    }
-
-    // Check user permissions.
-    if ( ! current_user_can( 'edit_page', $post_id ) ) {
-      return $post_id;
-    }
 
     //fu($_POST);
 

@@ -43,11 +43,10 @@ class AM_MBF_Date extends AM_MBF {
     // Set dateformat data.
     $this->add_data( 'dateformat', $this->get_setting( 'dateformat', 'dd.mm.yy' ) );
 
-    return sprintf( '<input type="text" name="%2$s" id="%1$s" value="%3$s" size="%4$s"%5$s%6$s />',
+    return sprintf( '<input type="text" name="%2$s" id="%1$s" value="%3$s"%4$s%5$s />',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
       esc_attr( $this->value ),
-      ( intval( $this->size ) > 0 ) ? intval( $this->size ) : 14,
       $this->get_classes(),
       $this->get_data_atts()
     );

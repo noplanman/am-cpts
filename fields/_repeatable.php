@@ -242,9 +242,8 @@ class AM_MBF_Repeatable extends AM_MBF {
         }
       }
       // Reverse the entries of the array to have them sorted correctly.
-      $value = array_reverse( $new_values_old );
+      $this->value = array_reverse( $new_values_old );
     }
-    $this->value = $value;
   }
 
   /**

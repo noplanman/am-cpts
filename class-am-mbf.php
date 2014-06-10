@@ -93,33 +93,6 @@ abstract class AM_MBF {
   protected $is_saving = false;
 
   /**
-   * The size of this field's input.
-   *
-   * @since 1.0.0
-   *
-   * @var string
-   */
-  protected $size = null;
-
-  /**
-   * Additional data to be assigned to this field. Key-Value pair of 'data-' HTML tags.
-   *
-   * @since 1.0.0
-   *
-   * @var array
-   */
-  protected $data = array();
-
-  /**
-   * Check / set if this field allows multiple selection.
-   *
-   * @since 1.0.0
-   *
-   * @var boolean
-   */
-  protected $is_multiple = false;
-
-  /**
    * Define if this field type is repeatable.
    *
    * @since 1.0.0
@@ -145,6 +118,15 @@ abstract class AM_MBF {
    * @var string
    */
   protected $post_type = null;
+
+  /**
+   * Additional data to be assigned to this field. Key-Value pair of 'data-' HTML tags.
+   *
+   * @since 1.0.0
+   *
+   * @var array
+   */
+  protected $data = array();
 
   /**
    * This field's options (Key-Value), used for checkbox- and radio groups.
@@ -286,6 +268,16 @@ abstract class AM_MBF {
     return static::$type;
   }
 
+  /**
+   * If a field has a special sub type, this method can be overridden to return it.
+   *
+   * @since 1.1.0
+   *
+   * @return string The special sub type.
+   */
+  public function get_sub_type() {
+    // This can be overridden if necessary.
+  }
 
   /**
    * Modify the new values before it gets sanitized. Could be used to bring the data into the right format.
@@ -519,28 +511,6 @@ abstract class AM_MBF {
   }
 
   /**
-   * Set this field's input size.
-   *
-   * @since 1.0.0
-   *
-   * @param string $size
-   */
-  final public function set_size( $size ) {
-    $this->size = $size;
-  }
-
-  /**
-   * Get this field's input size.
-   *
-   * @since 1.0.0
-   *
-   * @return string
-   */
-  final public function get_size() {
-    return $this->size;
-  }
-
-  /**
    * Generate some default classes related to this field.
    *
    * @since 1.0.0
@@ -555,7 +525,13 @@ abstract class AM_MBF {
       $more_classes = preg_split( '/[\s,]+/', $more_classes, null, PREG_SPLIT_NO_EMPTY );
     }
 
-    $classes = array( 'mbf-id-' . $this->id, 'mbf-type-' . static::$type );
+    $type = $this->get_type();
+    // Check if this field has a special sub type, use that instead.
+    if ( $sub_type = $this->get_sub_type() ) {
+      $type = $sub_type;
+    }
+
+    $classes = array( 'mbf-id-' . $this->id, 'mbf-type-' . $type );
     $classes = array_unique( array_merge( $classes, $more_classes ) );
     $classes = implode( ' ', $classes );
 
@@ -572,14 +548,9 @@ abstract class AM_MBF {
    */
   final public function add_data( $key, $value = null ) {
     if ( is_array( $key ) && ! isset( $value ) ) {
-
-      // Trim all keys and values and merge with data array.
-      $keys   = array_map( 'trim', array_keys( $key ) );
-      $values = array_map( 'trim', array_values( $key ) );
-
-      $this->data = array_merge( $this->data, array_combine ( $keys , $values ) );
+      $this->data = array_merge( $this->data, $key );
     } elseif ( isset( $key ) && isset( $value ) ) {
-      $this->data[ trim( $key ) ] = trim( $value );
+      $this->data[ $key ] = $value;
     }
   }
 
@@ -599,9 +570,6 @@ abstract class AM_MBF {
     if ( ! is_array( $keys ) ) {
       $keys = explode( ',', $keys );
     }
-
-    // Trim all entries.
-    $keys = array_map( 'trim', $keys );
 
     // Remove all data attributes.
     $this->data = array_diff_key( $this->data, array_flip( $keys ) );
@@ -663,21 +631,6 @@ abstract class AM_MBF {
   }
 
   /**
-   * Get or set the multiple flag. Defines if multiple entries can be selected for a select field.
-   *
-   * @since 1.0.0
-   *
-   * @param  bool|null $is_multiple If bool, set the passed value, else return the set value.
-   * @return boolean
-   */
-  final public function is_multiple( $is_multiple = null ) {
-    if ( is_bool( $is_multiple ) ) {
-      $this->is_multiple = $is_multiple;
-    }
-    return $this->is_multiple;
-  }
-
-  /**
    * Find out if this field type is repeatable.
    *
    * @since 1.0.0
@@ -725,28 +678,6 @@ abstract class AM_MBF {
 
 
   /**
-   * Set the post type for this field, if it relies on post type information.
-   *
-   * @since 1.0.0
-   *
-   * @param string $post_type
-   */
-  final public function set_post_type( $post_type ) {
-    $this->post_type = $post_type;
-  }
-
-  /**
-   * Get post type of this field.
-   *
-   * @since 1.0.0
-   *
-   * @return string
-   */
-  final public function get_post_type() {
-    return $this->post_type;
-  }
-
-  /**
    * Add new options to this field.
    *
    * @since 1.0.0
@@ -756,14 +687,9 @@ abstract class AM_MBF {
    */
   final public function add_option( $key, $value = null ) {
     if ( is_array( $key ) && ! isset( $value ) ) {
-
-      // Trim all keys and values and merge with data array.
-      $keys   = array_map( 'trim', array_keys( $key ) );
-      $values = array_map( 'trim', array_values( $key ) );
-
-      $this->options = array_merge( $this->options, array_combine ( $keys , $values ) );
+      $this->options = array_merge( $this->options, $key );
     } elseif ( isset( $key ) && isset( $value ) ) {
-      $this->options[ trim( $key ) ] = trim( $value );
+      $this->options[ $key ] = $value;
     }
   }
 
@@ -795,9 +721,6 @@ abstract class AM_MBF {
     if ( ! is_array( $keys ) ) {
       $keys = explode( ',', $keys );
     }
-
-    // Trim all entries.
-    $keys = array_map( 'trim', $keys );
 
     // Remove all options.
     $this->options = array_diff_key( $this->options, array_flip( $keys ) );
@@ -849,14 +772,9 @@ abstract class AM_MBF {
    */
   final public function add_setting( $key, $value = null ) {
     if ( is_array( $key ) && ! isset( $value ) ) {
-
-      // Trim all keys and values and merge with data array.
-      $keys   = array_map( 'trim', array_keys( $key ) );
-      $values = array_map( 'trim', array_values( $key ) );
-
-      $this->settings = array_merge( $this->settings, array_combine ( $keys , $values ) );
+      $this->settings = array_merge( $this->settings, $key );
     } elseif ( isset( $key ) && isset( $value ) ) {
-      $this->settings[ trim( $key ) ] = trim( $value );
+      $this->settings[ $key ] = $value;
     }
   }
 
@@ -888,9 +806,6 @@ abstract class AM_MBF {
     if ( ! is_array( $keys ) ) {
       $keys = explode( ',', $keys );
     }
-
-    // Trim all entries.
-    $keys = array_map( 'trim', $keys );
 
     // Remove all settings.
     $this->settings = array_diff_key( $this->settings, array_flip( $keys ) );
