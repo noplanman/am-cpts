@@ -234,8 +234,7 @@
 }
 
 .meta-box .meta-box-repeatable-add.loading {
-  background-image: url("/381clean/wp-admin/images/wpspin_light.gif");
-  background-position: 0 0;
+  background: url(../images/loading.gif) 0 0 no-repeat;
   cursor: default;
   pointer-events: none;
 }
