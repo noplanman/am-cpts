@@ -3,7 +3,7 @@
 /**
  * A color picker.
  *
- * @todo Use wp-color-picker?
+ * @todo Save 'transparent'?
  *
  * @since 1.0.0
  */
@@ -23,13 +23,17 @@ class AM_MBF_Color extends AM_MBF {
   protected $sanitizer = 'hexval';
 
   /**
-   * Check AM_MBF for description.
+   * Convert the sanitized string into a color. Check AM_MBF for description.
    *
    * @since 1.0.0
    */
   public function post_sanitize() {
     // Check which value has been sanitized, the old or new one.
     $sanitized_value = ( $this->is_saving ) ? $this->value_new : $this->value;
+
+    if ( ! is_string( $sanitized_value ) ) {
+      $sanitized_value = '';
+    }
 
     if ( 3 === strlen( $sanitized_value ) ) {
       // Convert from short to long form (i.e: '0f0' => '00ff00').

@@ -87,9 +87,6 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
         $new_id = $this->id . '-' . $opt_value;
       }
 
-      // Add option value to data as subid, cause it will be used by jQuery to correctly rewrite ids and names.
-      $this->add_data( 'subid', $opt_value );
-
       $ret .= sprintf( '<li><label><input type="checkbox" value="%4$s" name="%2$s[]" id="%1$s"%5$s%6$s%7$s />&nbsp;%3$s</label></li>',
         esc_attr( $new_id ),
         esc_attr( $this->name ),

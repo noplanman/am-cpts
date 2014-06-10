@@ -131,7 +131,7 @@ abstract class AM_MBF {
   /**
    * The repeatable parent field of this field.
    *
-   * @since 1.0.2
+   * @since 1.1.0
    *
    * @var AM_MBF
    */
@@ -144,7 +144,7 @@ abstract class AM_MBF {
    *
    * @var string
    */
-  protected $post_type = '';
+  protected $post_type = null;
 
   /**
    * This field's options (Key-Value), used for checkbox- and radio groups.
@@ -325,35 +325,46 @@ abstract class AM_MBF {
       foreach ( $values_to_sanitize as $key => $value ) {
         switch ( $this->sanitizer ) {
           case 'none':
-            $values_sanitized[ $key ] = $value; break;
+            $values_sanitized[ $key ] = $value;
+            break;
           case 'absint':
-            $values_sanitized[ $key ] = absint( $value ); break;
+            $values_sanitized[ $key ] = absint( $value );
+            break;
           case 'intval':
-            $values_sanitized[ $key ] = intval( $value ); break;
+            $values_sanitized[ $key ] = intval( $value );
+            break;
           case 'floatval':
-            $values_sanitized[ $key ] = floatval( $value ); break;
+            $values_sanitized[ $key ] = floatval( $value );
+            break;
           case 'hexval';
-            $values_sanitized[ $key ] = preg_replace('/[^a-f0-9]+/', '', strtolower( $value ) ); break;
+            $values_sanitized[ $key ] = preg_replace('/[^a-f0-9]+/', '', strtolower( $value ) );
+            break;
           case 'textarea':
-            $values_sanitized[ $key ] = esc_textarea( $value ); break;
+            $values_sanitized[ $key ] = esc_textarea( $value );
+            break;
           case 'kses_post':
-            $values_sanitized[ $key ] = wp_kses_post( $value ); break;
+            $values_sanitized[ $key ] = wp_kses_post( $value );
+            break;
           case 'kses_data':
-            $values_sanitized[ $key ] = wp_kses_data( $value ); break;
+            $values_sanitized[ $key ] = wp_kses_data( $value );
+            break;
           case 'url':
-            $values_sanitized[ $key ] = esc_url_raw( $value ); break;
+            $values_sanitized[ $key ] = esc_url_raw( $value );
+            break;
           case 'email':
-            $values_sanitized[ $key ] = sanitize_email( $value ); break;
+            $values_sanitized[ $key ] = sanitize_email( $value );
+            break;
           case 'title':
-            $values_sanitized[ $key ] = sanitize_title( $value ); break;
+            $values_sanitized[ $key ] = sanitize_title( $value );
+            break;
           case 'boolean':
-            $values_sanitized[ $key ] = ( isset( $value ) && ( intval( $value ) === 1 || true === $value || 'true' === trim( $value ) ) ); break;
+            $values_sanitized[ $key ] = ( isset( $value ) && ( intval( $value ) === 1 || true === $value || 'true' === trim( $value ) ) );
+            break;
           case 'text_field':
           default:
             $values_sanitized[ $key ] = sanitize_text_field( $value );
         }
       }
-
 
       // If the value was an array to start with, just take the first entry of the newly sanitized array.
       if ( ! $was_array ) {
@@ -680,7 +691,7 @@ abstract class AM_MBF {
   /**
    * Set this field's parent repeatable field.
    *
-   * @since 1.0.2
+   * @since 1.1.0
    *
    * @param AM_MBF $parent The parent repeatable field.
    */
@@ -693,7 +704,7 @@ abstract class AM_MBF {
   /**
    * Get this field's parent repeatable field.
    *
-   * @since 1.0.2
+   * @since 1.1.0
    *
    * @return object The parent repeatable field.
    */
@@ -704,7 +715,7 @@ abstract class AM_MBF {
   /**
    * Check if this field has a parent repeatable field.
    *
-   * @since 1.0.2
+   * @since 1.1.0
    *
    * @return boolean
    */

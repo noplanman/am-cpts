@@ -3,7 +3,7 @@
 /**
  * A TinyMCE editor.
  *
- * @todo Make repeatable? see https://core.trac.wordpress.org/ticket/19173
+ * @todo Make repeatable?! see https://core.trac.wordpress.org/ticket/19173
  *
  * @since 1.0.0
  */

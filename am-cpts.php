@@ -29,44 +29,17 @@ Examples!!
  */
 
 
-/*$mb = new AM_MB( 'mb1', 'Metabox1', AM_MBF::create_batch(
-    array( 'repeatable', 'rep1', 'Repeatable 1', 'Repeatable 1 Description', AM_MBF::create_batch(
-        array( 'textarea', 'txt1', 'Rep Text 1', 'Rep Text 1 Description' ),
-        array( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ),
-        array( 'text','text1','Simple text input', 'Text description' ),
-        array( 'tel','tel1','Simple tel input', 'Tel description' )
-      )
-    ),
-    array( 'text', 'txt1', 'Text 1', 'Text 1 Description' )
-  )
-);
-$mb->assign_post_type( 'post' );
-$mb->register();
-*/
 
 $mb = new AM_MB( 'mb1', 'Metabox1' );
-$rep = AM_MBF::create( 'repeatable', 'rep1', 'Repeatable 1', 'Repeatable 1 Description' );
-$ta = AM_MBF::create( 'textarea', 'txt1', 'Rep Text 1', 'Rep Text 1 Description' );
-$ta->set_size('30,10');
-//$rep->add_field( $ta );
-//$mb->add_field( $ta );
-
-$rep->add_field( AM_MBF::create( 'slider','slid1','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4, 'range'=>false) ) );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
-//$rep->add_field( AM_MBF::create( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ) );
-//$rep->add_field( AM_MBF::create( 'text','text1','Simple text input', 'Text description' ) );
-
+$rep = AM_MBF::create( 'repeatable', 'rep', 'Repeatable', 'Repeatable Description' );
+//$rep->add_field( AM_MBF::create( 'chosen','slid12','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) ) );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+$f = AM_MBF::create( 'select','slid12','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) );
+$f->is_multiple( true );
+$rep->add_field( $f );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+//$rep->add_field( AM_MBF::create( 'slider','slid123','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) ) );
 $mb->add_field( $rep );
-
-//$mb->add_field( AM_MBF::create( 'slider','sl14','slider 1', 'my description', array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
-
-
-//$mb->add_field( AM_MBF::create( 'color','clr1','slider 1', 'my description' ) );
-//$mb->add_field( AM_MBF::create( 'editor','edt2','slider 1', 'my description' ) );
-
 $mb->assign_post_type( 'post' );
 $mb->register();
-
-
 
 return;
 
@@ -168,28 +141,24 @@ $cpt_note = new CPT_Note();
 $tax_styles = new Tax_Note_Styles();
 
 // Also assign this taxonomy to the 'post' post type.
-$tax_styles->assign_post_type( 'post' );
+//$tax_styles->assign_post_type( 'post' );
 
 // Assign taxonomy.
 $cpt_note->assign_taxonomy( $tax_styles );
 
-$mb_basic = new AM_MB( 'metabox1', 'First Metabox' );
-$mb_basic->add_field( 'plaintext', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' );
-$mb_basic->add_field( 'text','text1','Simple text input', 'Text description' );
-$mb_basic->add_field( 'tel','tel1','Simple tel input', 'Tel description' );
-$mb_basic->add_field( 'url','url1','Simple URL input', 'URL description' );
-$mb_basic->add_field( 'email','email1','Simple email input', 'Email description' );
-$mb_basic->add_field( 'number','number1','Simple number input', 'Number description' );
+//$mb_basic = new AM_MB( 'metabox1', 'First Metabox' );
+//$mb_basic->add_field( AM_MBF::create( 'file', 'plaintext1', 'Just some plain text...', '...and the fitting description for it.' ) );
 
 // Assign meta box.
-$cpt_note->assign_meta_box( $mb_basic );
+//$cpt_note->assign_meta_box( $mb_basic );
 
 // Register it all!!
 
-//$cpt_note->register();
+$cpt_note->register();
 
 // You expected more?!
 
+return;
 
 
 //);
