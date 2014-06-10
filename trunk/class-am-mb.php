@@ -353,6 +353,8 @@ class AM_MB {
       }
 
       if ( ! wp_style_is( 'jquery-ui' ) ) {
+        // Interesting read, see "jQuery UI Styling". Didn't use this method, cause it was incomplete.
+        // http://code.tutsplus.com/tutorials/integrating-with-wordpress-ui-the-basics--wp-26713
         wp_enqueue_style( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css' );
       }
 

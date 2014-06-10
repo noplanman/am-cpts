@@ -1,9 +1,8 @@
 <?php
 
 /**
- * A slider to input numbers.
+ * A slider to input numbers and ranges.
  *
- * @todo Make repeatable!!
  * @todo Vertical slider? Is this necessary?
  * @todo More options. Check jQuery UI for all possibilities.
  *
@@ -84,10 +83,10 @@ class AM_MBF_Slider extends AM_MBF {
   public function output() {
 
     // Get and assign all settings.
-    $min     = $this->get_setting( 'min', 0 );
-    $max     = $this->get_setting( 'max', 100 );
-    $step    = $this->get_setting( 'step', 1 );
-    $range   = $this->get_setting( 'range', false );
+    $min   = $this->get_setting( 'min', 0 );
+    $max   = $this->get_setting( 'max', 100 );
+    $step  = $this->get_setting( 'step', 1 );
+    $range = $this->get_setting( 'range', false );
 
     // If range is active, only 2 handles.
     $handles = ( $range ) ? 2 : $this->get_setting( 'handles', 1 );
@@ -111,16 +110,16 @@ class AM_MBF_Slider extends AM_MBF {
 
     // Add all settings to field as data.
     $this->add_data( array(
-      'min' => $min,
-      'max' => $max,
-      'step' => $step,
+      'min'    => $min,
+      'max'    => $max,
+      'step'   => $step,
       'values' => '[' . $values . ']',
-      'range' => ( $range ) ? 'true' : 'false'
+      'range'  => ( $range ) ? 'true' : 'false'
     ) );
 
     return sprintf( '
-      <div id="slider-%1$s"%4$s></div>
-      <input type="hidden" name="%2$s" id="%1$s" value="%3$s"%5$s />',
+      <div id="slider-%1$s" data-storage="%1$s"%4$s%5$s></div>
+      <input type="hidden" name="%2$s" id="%1$s" value="%3$s" />',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
       esc_attr( $this->value ),

@@ -65,13 +65,13 @@ class AM_MBF_Repeatable extends AM_MBF {
     $this->add_fields( $fields );
 
     //Register AJAX callback.
-    add_action( 'wp_ajax_output_repeatable_fields', array( $this, '_output_repeatable_fields' ) );
+    add_action( 'wp_ajax_output_repeatable_fields_' . $this->id, array( $this, '_output_repeatable_fields' ) );
   }
 
   /**
    * Set saving flag for all repeatable fields. Check AM_MBF for description.
    *
-   * @since 1.0.2
+   * @since 1.1.0
    */
   public function is_saving( $is_saving = null ) {
     if ( is_bool( $is_saving ) ) {
@@ -148,6 +148,7 @@ class AM_MBF_Repeatable extends AM_MBF {
    * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
+//fu($this->_value_new);
     if ( ! isset( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
       // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->_value );
@@ -165,7 +166,6 @@ class AM_MBF_Repeatable extends AM_MBF {
   public function sanitize() {
     // Check which values have to be sanitized, the old or new ones.
     $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value;
-
     if ( is_array( $values_to_sanitize ) ) {
       // Loop all values.
       foreach ( $values_to_sanitize as $rep_fields ) {
@@ -255,11 +255,10 @@ class AM_MBF_Repeatable extends AM_MBF {
    * @param array $value The old values to assign to this repeatable field.
    */
   public function set_value_new( $value_new ) {
-
     if ( is_array( $this->repeatable_fields ) && ! empty( $this->repeatable_fields ) && is_array( $value_new ) ) {
-
       // Get rid of empty entries.
       $values_new = array();
+
       foreach ( $value_new as $value ) {
         if ( is_array( $value ) ) {
           $value = array_filter( $value );
@@ -319,11 +318,8 @@ class AM_MBF_Repeatable extends AM_MBF {
    */
   public function _output_repeatable_fields() {
 
-    extract( $_POST );
-    if ( isset( $meta_box_id ) && $meta_box_id == $this->meta_box->get_id()
-      && isset( $repeatable_field_id ) && $repeatable_field_id == $this->id
-      && isset( $iterator_id ) ) {
-      echo $this->output_repeatable_fields( $iterator_id );
+    if ( isset( $_POST['iterator'] ) ) {
+      echo $this->output_repeatable_fields( intval( $_POST['iterator'] ) );
     }
 
     die();
@@ -342,7 +338,7 @@ class AM_MBF_Repeatable extends AM_MBF {
 
     $field_outputs = sprintf( '
       <tr>
-        <td><span class="ui-icon ui-icon-grip-dotted-horizontal sort" title="%1$s"></span></td>
+        <td><span class="sort" title="%1$s"></span></td>
         <td>',
       esc_attr__( 'Click & Drag to rearrange field', 'am-cpts' )
     );
@@ -373,7 +369,7 @@ class AM_MBF_Repeatable extends AM_MBF {
     }
     $field_outputs .= sprintf( '
         </td>
-        <td><a class="ui-icon ui-icon-minusthick meta-box-repeatable-remove" href="#" title="%1$s"></a></td>
+        <td><a class="meta-box-repeatable-remove" href="#" title="%1$s"></a></td>
       </tr>',
       esc_attr__( 'Remove field', 'am-cpts' )
     );
@@ -410,26 +406,29 @@ class AM_MBF_Repeatable extends AM_MBF {
         <table id="%1$s-repeatable" class="meta-box-repeatable" cellspacing="0" data-id="%1$s" data-iid="%2$d">
           <thead>
             <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label" title="%4$s"></span></th>
+              <th>&nbsp;</th>
               <th>%5$s</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="top" title="%6$s"></a></th>
+              <th><a class="meta-box-repeatable-add" href="#" data-position="top" title="%6$s"></a></th>
+            </tr>
+            <tr>
+              <td colspan="3" class="repeatable-empty-message">%3$s</td>
             </tr>
           </thead>
           <tfoot>
             <tr>
-              <th><span class="ui-icon ui-icon-arrowthick-2-n-s sort-label" title="%4$s"></span></th>
+              <th>&nbsp;</th>
               <th>%5$s</th>
-              <th><a class="ui-icon ui-icon-plusthick meta-box-repeatable-add" href="#" data-position="bottom" title="%6$s"></a></th>
+              <th><a class="meta-box-repeatable-add" href="#" data-position="bottom" title="%6$s"></a></th>
             </tr>
           </tfoot>
           <tbody>
-            %3$s
+            %4$s
           </tbody>
         </table>',
         esc_attr( $this->id ),
         $iterator,
+        esc_html__( 'No fields added yet! Click the + on the right.', 'am-cpts' ),
         $field_outputs,
-        esc_attr__( 'Rearrange fields', 'am-cpts' ),
         esc_attr__( 'Repeatable Fields', 'am-cpts' ),
         esc_attr__( 'Add new field', 'am-cpts' )
       );

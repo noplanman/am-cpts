@@ -4,6 +4,7 @@
  * A simple date entry field.
  *
  * @todo datetime, time.
+ * @todo More options. Check jQuery UI for all possibilities.
  *
  * @since 1.0.0
  */
