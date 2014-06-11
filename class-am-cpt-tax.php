@@ -167,6 +167,50 @@ abstract class AM_CPT_Tax {
  */
 class AM_Tax extends AM_CPT_Tax {
   /**
+   * An array of all created AM_Tax.
+   *
+   * @since 1.2.0
+   *
+   * @var array
+   */
+  private static $_all_taxs = array();
+
+  /**
+   * Get one or more already created AM_Tax.
+   *
+   * @since 1.2.0
+   *
+   * @param  null|string|array $tax_slug Slug of the AM_Tax(s) to get. If null, the current taxonomies are used.
+   * @return array                       Array of requested AM_Tax(s).
+   */
+  public static function get( $tax_slug = null ) {
+    $tax_slug = ( isset( $tax_slug ) ) ? $tax_slug : array_keys( get_the_taxonomies() );
+
+    // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
+    if ( ! is_array( $tax_slug ) ) {
+      $tax_slug = explode( ',', $tax_slug );
+    }
+
+    return array_intersect_key( self::$_all_taxs, array_flip( $tax_slug ) );
+  }
+
+  /**
+   * Get a single already created AM_Tax.
+   *
+   * @since 1.2.0
+   *
+   * @param  null|string $tax_slug Slug of the AM_Tax to get. If null, the first current taxonomy is used.
+   * @return null|AM_Tax           The requested AM_Tax, if it exists.
+   */
+  public static function get_single( $tax_slug = null ) {
+    $tax_slug = ( isset( $tax_slug ) ) ? (array) $tax_slug : array_keys( get_the_taxonomies() );
+    // Get the first entry.
+    $tax_slug = reset( $tax_slug );
+
+    return ( array_key_exists( $tax_slug, self::$_all_taxs ) ) ? self::$_all_taxs[ $tax_slug ] : null;
+  }
+
+  /**
    * Array of post types that will have this taxonomy assigned to.
    *
    * @since 1.0.0
@@ -206,9 +250,6 @@ class AM_Tax extends AM_CPT_Tax {
       $post_types = explode( ',', $post_types );
     }
 
-    // Trim all entries.
-    $post_types = array_map( 'trim', $post_types );
-
     // Assign all post types.
     foreach ( $post_types as $post_type ) {
       if ( ! in_array( $post_type, $this->post_types ) ) {
@@ -234,9 +275,6 @@ class AM_Tax extends AM_CPT_Tax {
       $post_types = explode( ',', $post_types );
     }
 
-    // Trim all entries.
-    $post_types = array_map( 'trim', $post_types );
-
     // Remove all post types.
     $this->post_types = array_diff( $this->post_types, $post_types );
   }
@@ -248,6 +286,9 @@ class AM_Tax extends AM_CPT_Tax {
    */
   final public function register() {
     add_action( 'init', array( $this, '_register' ), $this->priority );
+
+    // Save this taxonomy to $_all_taxs so it can easily be fetched again when required.
+    self::$_all_taxs[ $this->slug ] = $this;
   }
 
   /**
@@ -301,14 +342,33 @@ class AM_CPT extends AM_CPT_Tax {
   private static $_all_cpts = array();
 
   /**
-   * Get any already created AM_CPT.
+   * Get one or more already created AM_CPT.
    *
-   * @since 1.0.0
+   * @since 1.2.0
+   *
+   * @param  null|string|array $cpt_slug Slug of the AM_CPT(s) to get. If null, the current post type is used.
+   * @return array                       Array of requested AM_CPT(s).
+   */
+  public static function get( $cpt_slug = null ) {
+    $cpt_slug = ( isset( $cpt_slug ) ) ? $cpt_slug : get_post_type();
+
+    // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
+    if ( ! is_array( $cpt_slug ) ) {
+      $cpt_slug = explode( ',', $cpt_slug );
+    }
+
+    return array_intersect_key( self::$_all_cpts, array_flip( $cpt_slug ) );
+  }
+
+  /**
+   * Get a single already created AM_CPT.
+   *
+   * @since 1.2.0
    *
    * @param  null|string $cpt_slug Slug of the AM_CPT to get. If null, the current post type is used.
-   * @return null|AM_CPT           AM_CPT if the requested AM_CPT exists, else null.
+   * @return null|AM_CPT           The requested AM_CPT, if it exists.
    */
-  public static function get_cpt( $cpt_slug = null ) {
+  public static function get_single( $cpt_slug = null ) {
     $cpt_slug = ( isset( $cpt_slug ) ) ? $cpt_slug : get_post_type();
 
     return ( array_key_exists( $cpt_slug, self::$_all_cpts ) ) ? self::$_all_cpts[ $cpt_slug ] : null;
@@ -331,9 +391,6 @@ class AM_CPT extends AM_CPT_Tax {
     $this->assign_taxonomy( $taxonomies );
     $this->assign_meta_box( $meta_boxes );
     $this->set_priority( $priority );
-
-    // Save this CPT to $all_cpts, so it can easily be fetched again when required.
-    self::$_all_cpts[ $slug ] = $this;
   }
 
   /**
@@ -378,9 +435,6 @@ class AM_CPT extends AM_CPT_Tax {
     if ( ! is_array( $taxonomies ) ) {
       $taxonomies = explode( ',', $taxonomies );
     }
-
-    // Trim all entries.
-    $taxonomies = array_map( 'trim', $taxonomies );
 
     // Remove all taxonomies.
     $this->taxonomies = array_diff_key( $this->taxonomies, array_flip( $taxonomies ) );
@@ -440,9 +494,6 @@ class AM_CPT extends AM_CPT_Tax {
       $meta_boxes = explode( ',', $meta_boxes );
     }
 
-    // Trim all entries.
-    $meta_boxes = array_map( 'trim', $meta_boxes );
-
     // Remove all meta boxes.
     $this->meta_boxes = array_diff_key( $this->meta_boxes, array_flip( $meta_boxes ) );
   }
@@ -468,9 +519,6 @@ class AM_CPT extends AM_CPT_Tax {
       if ( ! is_array( $meta_boxes ) ) {
         $meta_boxes = explode( ',', $meta_boxes );
       }
-
-      // Trim all entries.
-      $meta_boxes = array_map( 'trim', $meta_boxes );
 
       // Return only the requested meta boxes.
       $ret_meta_boxes = array_intersect_key( $this->meta_boxes, array_flip( $meta_boxes ) );
@@ -520,6 +568,9 @@ class AM_CPT extends AM_CPT_Tax {
     }
 
     add_action( 'init', array( $this, '_register' ), $this->priority );
+
+    // Save this CPT to $_all_cpts so it can easily be fetched again when required.
+    self::$_all_cpts[ $this->slug ] = $this;
   }
 
   /**
