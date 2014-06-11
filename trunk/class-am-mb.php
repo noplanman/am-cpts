@@ -59,6 +59,43 @@ class AM_MB {
   protected $context = 'normal';
 
   /**
+   * An array of all created AM_MB.
+   *
+   * @since 1.2.0
+   *
+   * @var array
+   */
+  private static $_all_mbs = array();
+
+  /**
+   * Get one or more already created AM_MB.
+   *
+   * @since 1.2.0
+   *
+   * @param  null|string|array $meta_box_id Slug of the AM_MB(s) to get. If null, the current post type is used.
+   * @return array                       Array of requested AM_MB(s).
+   */
+  public static function get( $meta_box_id = null ) {
+    $meta_box_id = ( isset( $meta_box_id ) ) ? $meta_box_id : array_keys( self::$_all_mbs );
+
+    // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
+    if ( ! is_array( $meta_box_id ) ) {
+      $meta_box_id = explode( ',', $meta_box_id );
+    }
+
+    $ret_mbs = array();
+    $post_type = get_post_type();
+
+    foreach ( self::$_all_mbs as $mb ) {
+      if ( in_array( $post_type, $mb->get_post_types() ) ) {
+        $ret_mbs[ $mb->get_id() ] = $mb;
+      }
+    }
+
+    return array_intersect_key( $ret_mbs, array_flip( $meta_box_id ) );
+  }
+
+  /**
    * Create a new AM_MB object.
    *
    * @since 1.0.0
@@ -104,6 +141,25 @@ class AM_MB {
    */
   final public function get_fields() {
     return $this->fields;
+  }
+
+  /**
+   * Get the values of all fields.
+   *
+   * @since 1.2.0
+   *
+   * @param bool $escaped If the values should be escaped or returned raw.
+   * @return array Values of all fields.
+   */
+  final public function get_field_values( $escaped = true ) {
+    // Load meta data first.
+    $this->load_data();
+
+    $field_values = array();
+    foreach ( $this->fields as $field ) {
+      $field_values[ $field->get_id() ] = $field->get_value( $escaped );
+    }
+    return $field_values;
   }
 
   /**
@@ -286,6 +342,9 @@ class AM_MB {
         add_action( 'add_meta_boxes_' . $post_type, array( $this, '_register' ) );
       }
       add_action( 'save_post',  array( $this, '_save' ) );
+
+      // Save this meta box to $_all_mbs so it can easily be fetched again when required.
+      self::$_all_mbs[ $this->id ] = $this;
     }
   }
 
