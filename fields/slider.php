@@ -26,6 +26,13 @@ class AM_MBF_Slider extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
+   * @since 1.2.0
+   */
+  protected $validator = 'floatval';
+
+  /**
+   * Check AM_MBF for description.
+   *
    * @since 1.0.0
    */
   protected $is_repeatable = true;
@@ -42,11 +49,11 @@ class AM_MBF_Slider extends AM_MBF {
   }
 
   /**
-   * Prepare values to be sanitized.
+   * Prepare values to be validated.
    *
-   * @since 1.0.0
+   * @since 1.2.0
    */
-  public function pre_sanitize() {
+  public function pre_validate() {
     if ( $this->is_saving ) {
       if ( isset( $this->value_new ) ) {
         $this->value_new = explode( ',', $this->value_new );
@@ -54,23 +61,6 @@ class AM_MBF_Slider extends AM_MBF {
     } else {
       if ( isset( $this->value ) ) {
         $this->value = explode( ',', $this->value );
-      }
-    }
-  }
-
-  /**
-   * Put sanitized values back into the correct format.
-   *
-   * @since 1.0.0
-   */
-  public function post_sanitize() {
-    if ( $this->is_saving ) {
-      if ( is_array( $this->value_new ) ) {
-        $this->value_new = implode( ',', $this->value_new );
-      }
-    } else {
-      if ( is_array( $this->value ) ) {
-        $this->value = implode( ',', $this->value );
       }
     }
   }
@@ -91,7 +81,7 @@ class AM_MBF_Slider extends AM_MBF {
     // If range is active, only 2 handles.
     $handles = ( $range ) ? 2 : $this->get_setting( 'handles', 1 );
 
-    $values = $this->get_value();
+    $values = $this->value;
 
     if ( ! is_array( $values ) ) {
       $values = array_filter( explode( ',', $values ) );
@@ -122,7 +112,7 @@ class AM_MBF_Slider extends AM_MBF {
       <input type="hidden" name="%2$s" id="%1$s" value="%3$s" />',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      esc_attr( $this->value ),
+      esc_attr( $values ),
       $this->get_classes(),
       $this->get_data_atts()
     );

@@ -33,26 +33,13 @@ class AM_MBF_Repeatable extends AM_MBF {
   protected $repeatable_fields = array();
 
   /**
-   * The old value as it is in the database.
+   * The fields saved to this repeatable field. This array contains arrays of fields.
    *
-   * @todo Instead of this variable, have an array with the "real" repeatable field objects.
-   *
-   * @since 1.0.0
+   * @since 1.2.0
    *
    * @var array
    */
-  private $_value = array();
-
-  /**
-   * The new value as it will be saved to the database.
-   *
-   * @todo Instead of this variable, have an array with the "real" repeatable field objects.
-   *
-   * @since 1.0.0
-   *
-   * @var array
-   */
-  private $_value_new = array();
+  private $_value_fields = array();
 
   /**
    * Constructor to optionally add fields.
@@ -67,33 +54,6 @@ class AM_MBF_Repeatable extends AM_MBF {
     //Register AJAX callback.
     add_action( 'wp_ajax_output_repeatable_fields_' . $this->id, array( $this, '_output_repeatable_fields' ) );
   }
-
-  /**
-   * Set saving flag for all repeatable fields. Check AM_MBF for description.
-   *
-   * @since 1.1.0
-   */
-  public function is_saving( $is_saving = null ) {
-    if ( is_bool( $is_saving ) ) {
-      $this->is_saving = $is_saving;
-
-      // Set all current fields.
-      foreach ( (array) $this->value as $rep_fields ) {
-        foreach ( $rep_fields as $rep_field ) {
-          $rep_field->is_saving( $is_saving );
-        }
-      }
-
-      // Set all new fields.
-      foreach ( (array) $this->value_new as $rep_fields ) {
-        foreach ( $rep_fields as $rep_field ) {
-          $rep_field->is_saving( $is_saving );
-        }
-      }
-    }
-    return $this->is_saving;
-  }
-
 
   /**
    * Add fields to this repeatable field.
@@ -148,27 +108,24 @@ class AM_MBF_Repeatable extends AM_MBF {
    * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
-//fu($this->_value_new);
-    if ( ! isset( $this->_value_new ) || '' == $this->_value_new || array() == $this->_value_new ) {
+    if ( ! isset( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
       // Remove the post meta data.
-      delete_post_meta( $post_id, $this->id, $this->_value );
-    } elseif ( $this->_value_new != $this->_value ) {
+      delete_post_meta( $post_id, $this->id, $this->value );
+    } elseif ( $this->value_new != $this->value ) {
       // Add / update the post meta data.
-      update_post_meta( $post_id, $this->id, $this->_value_new );
+      update_post_meta( $post_id, $this->id, $this->value_new );
     }
   }
 
   /**
-   * Sanitize the new value of this field and all repeatable fields.
+   * Sanitize the value of all repeatable fields.
    *
    * @since 1.0.0
    */
   public function sanitize() {
-    // Check which values have to be sanitized, the old or new ones.
-    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value;
-    if ( is_array( $values_to_sanitize ) ) {
+    if ( is_array( $this->_value_fields ) ) {
       // Loop all values.
-      foreach ( $values_to_sanitize as $rep_fields ) {
+      foreach ( $this->_value_fields as $rep_fields ) {
         // Loop all fields.
         if ( is_array( $rep_fields ) ) {
           foreach ( $rep_fields as $rep_field ) {
@@ -182,131 +139,116 @@ class AM_MBF_Repeatable extends AM_MBF {
   }
 
   /**
-   * Convert field values into field objects and also prepare an empty field template to be used to dynamically add new fields.
+   * Override validation method for repeatable field.
    *
-   * @since 1.0.0
-   *
-   * @param array $value The old values to assign to this repeatable field.
+   * @since 1.2.0
    */
-  public function set_value( $value ) {
-    // Keep 'original' old value.
-    $this->_value = $value;
-
-    if ( is_array( $this->repeatable_fields ) && ! empty( $this->repeatable_fields ) ) {
-
-      $new_values_old = array();
-
-      $values_old = ( is_array( $value ) ) ? array_values( $value ) : array();
-      $i = count( $values_old );
-
-      // Do a backwards loop.
-      while ( $i-- > -1 ) {
-
-        if ( -1 == $i ) {
-          // Prepare id and name for template fields.
-          foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field->set_id( $rep_field->get_id() . '-empty' );
-            $rep_field->set_name( '' );
-          }
-        } else {
-          // Assign the values to the field objects themselves.
-
-          $values = $values_old[ $i ];
-          $new_values = array();
-
-          // Remember if any of the repeatable fields are set.
-          $is_set = false;
-
-          foreach ( $this->repeatable_fields as $rep_field ) {
-            $rep_field_id = $rep_field->get_id();
-
-            if ( ! array_key_exists( $rep_field_id, $values ) ) {
-              $values[ $rep_field_id ] = null;
-            } elseif ( isset( $values[ $rep_field_id ] ) && '' != $values[ $rep_field_id ] ) {
-              $is_set = true;
-            }
-
-            // Clone repeatable field to keep original pristine.
-            $rep_field = clone( $rep_field );
-
-            $rep_field->set_value( $values[ $rep_field_id ] );
-//            $rep_field->set_id( $rep_field_id . '-' . $i );
-//            $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
-
-            $new_values[ $rep_field_id ] = $rep_field;
-          }
-          // Only add to values if an old value has been set.
-          if ( $is_set ) {
-            $new_values_old[] = $new_values;
-          }
-        }
-      }
-      // Reverse the entries of the array to have them sorted correctly.
-      $this->value = array_reverse( $new_values_old );
-    }
+  public function validate() {
+    // No validation needed because the fields are validated when being set in _set_values_get_fields() method.
   }
 
   /**
-   * Convert field values into field objects and also prepare an empty field template to be used to dynamically add new fields.
+   * Set the validated values and return the field objects that contain the values.
    *
-   * @since 1.0.0
+   * @since 1.2.0
    *
-   * @param array $value The old values to assign to this repeatable field.
+   * @param array   $values_rows Rows of repeatable field values.
+   * @param array   $value       Variable to save the new values.
+   * @param string  $which       Which values to set, 'new' or 'old'.
    */
-  public function set_value_new( $value_new ) {
-    if ( is_array( $this->repeatable_fields ) && ! empty( $this->repeatable_fields ) && is_array( $value_new ) ) {
-      // Get rid of empty entries.
-      $values_new = array();
+  private function _set_values_get_fields( $values_rows, &$value, $which ) {
+    // Make sure $which is set properly
+    if ( ! in_array( $which, array( 'old', 'new' ) ) ) {
+      return;
+    }
 
-      foreach ( $value_new as $value ) {
-        if ( is_array( $value ) ) {
-          $value = array_filter( $value );
-          if ( count( $value ) > 0 ) {
-            $values_new[] = $value;
-          }
-        }
-      }
-      $this->_value_new = $values_new;
+    // New fields with newly set values.
+    $new_fields_rows = array();
+    $new_values_rows = array();
 
-      $new_values_new = array();
-      $i = count( $values_new );
-      while ( $i-- > 0 ) {
+    if ( is_array( $values_rows ) && ! empty( $values_rows )
+      && is_array( $this->repeatable_fields ) && ! empty( $this->repeatable_fields ) ) {
 
-        // Assign the values to the field objects themselves.
+      $values_rows = array_values( $values_rows );
 
-        $values = $values_new[ $i ];
-        $new_values = array();
+      // Assign the values to the field objects themselves.
+      foreach ( $values_rows as $values_row ) {
 
-        // Remember if any of the repeatable fields are set.
+        $new_fields_row = array();
+        $new_values_row = array();
+
+        // Remember if any of the repeatable fields values are set.
         $is_set = false;
 
+        // Loop through all repeatable fields.
         foreach ( $this->repeatable_fields as $rep_field ) {
           $rep_field_id = $rep_field->get_id();
 
-          if ( ! array_key_exists( $rep_field_id, $values ) ) {
-            $values[ $rep_field_id ] = null;
-          } elseif ( isset( $values[ $rep_field_id ] ) && '' != $values[ $rep_field_id ] ) {
+          if ( ! array_key_exists( $rep_field_id, $values_row ) ) {
+            $values_row[ $rep_field_id ] = null;
+          } elseif ( isset( $values_row[ $rep_field_id ] ) && '' != $values_row[ $rep_field_id ] ) {
             $is_set = true;
           }
 
           // Clone repeatable field to keep original pristine.
           $rep_field = clone( $rep_field );
 
-          $rep_field->set_value_new( $values[ $rep_field_id ] );
-          $rep_field->set_id( $rep_field_id . '-' . $i );
-          $rep_field->set_name( $this->id . '[' . $i . '][' . $rep_field_id .']' );
+          // Set is_saving flag.
+          $rep_field->is_saving( $this->is_saving );
 
-          $new_values[] = $rep_field;
+          if ( 'old' == $which ) {
+            $rep_field->set_value( $values_row[ $rep_field_id ] );
+          } elseif ( 'new' == $which ) {
+            $rep_field->set_value_new( $values_row[ $rep_field_id ] );
+          }
+
+          $new_fields_row[ $rep_field_id ] = $rep_field;
+          if ( 'old' == $which ) {
+            $new_values_row[ $rep_field_id ] = $rep_field->get_value();
+          } elseif ( 'new' == $which ) {
+            $new_values_row[ $rep_field_id ] = $rep_field->get_value_new();
+          }
         }
-        // Only add to values if an old value has been set.
+
+        // Only add to fields if an old value has been set.
         if ( $is_set ) {
-          $new_values_new[] = $new_values;
+          $new_fields_rows[] = $new_fields_row;
+          $new_values_rows[] = $new_values_row;
         }
       }
-      // Reverse the entries of the array to have them sorted correctly.
-      $value_new = array_reverse( $new_values_new );
     }
-    $this->value_new = $value_new;
+
+    $value = $new_values_rows;
+    return $new_fields_rows;
+  }
+
+  /**
+   * Convert field values into field objects.
+   *
+   * @since 1.0.0
+   *
+   * @param array $values_rows The old values to assign to this repeatable field.
+   */
+  public function set_value( $values_rows ) {
+    // Set raw value.
+    $this->value_raw = $values_rows;
+    $this->value = $values_rows;
+
+    // Don't waste time when saving fields.
+    if ( ! $this->is_saving ) {
+      $this->_value_fields = $this->_set_values_get_fields( $values_rows, $this->value, 'old' );
+    }
+  }
+
+  /**
+   * Set new field values.
+   *
+   * @since 1.0.0
+   *
+   * @param array $value The old values to assign to this repeatable field.
+   */
+  public function set_value_new( $values_rows_new ) {
+    $this->_set_values_get_fields( $values_rows_new, $this->value_new, 'new' );
   }
 
   /**
@@ -386,7 +328,7 @@ class AM_MBF_Repeatable extends AM_MBF {
     if ( $this->get_repeatable_fields() ) {
 
       $field_outputs = '';
-      $values_old = $this->value;
+      $values_old = $this->_value_fields;
 
       // Make sure we have an array to work with.
       if ( ! is_array( $values_old ) ) {

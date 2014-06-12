@@ -76,11 +76,20 @@ class AM_MB {
    * @return array                       Array of requested AM_MB(s).
    */
   public static function get( $meta_box_id = null ) {
-    $meta_box_id = ( isset( $meta_box_id ) ) ? $meta_box_id : array_keys( self::$_all_mbs );
+    // If only a single meta box should be returned.
+    $single = null;
+
+    if ( ! isset( $meta_box_id ) ) {
+      $single = false;
+      $meta_box_id = array_keys( self::$_all_mbs );
+    }
 
     // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
     if ( ! is_array( $meta_box_id ) ) {
       $meta_box_id = explode( ',', $meta_box_id );
+      if ( ! isset( $single ) ) {
+        $single = ( 1 == count( $meta_box_id ) );
+      }
     }
 
     $ret_mbs = array();
@@ -92,7 +101,9 @@ class AM_MB {
       }
     }
 
-    return array_intersect_key( $ret_mbs, array_flip( $meta_box_id ) );
+    $ret_mbs = array_intersect_key( $ret_mbs, array_flip( $meta_box_id ) );
+
+    return ( $single ) ? reset( $ret_mbs ) : $ret_mbs;
   }
 
   /**
@@ -140,6 +151,9 @@ class AM_MB {
    * @return array
    */
   final public function get_fields() {
+    // Load meta data first.
+    $this->load_data();
+
     return $this->fields;
   }
 
@@ -148,16 +162,16 @@ class AM_MB {
    *
    * @since 1.2.0
    *
-   * @param bool $escaped If the values should be escaped or returned raw.
+   * @param bool $raw If the values should be escaped or returned raw.
    * @return array Values of all fields.
    */
-  final public function get_field_values( $escaped = true ) {
+  final public function get_field_values( $raw = false ) {
     // Load meta data first.
     $this->load_data();
 
     $field_values = array();
     foreach ( $this->fields as $field ) {
-      $field_values[ $field->get_id() ] = $field->get_value( $escaped );
+      $field_values[ $field->get_id() ] = $field->get_value( $raw );
     }
     return $field_values;
   }
@@ -356,11 +370,10 @@ class AM_MB {
    * @since 1.0.0
    */
   final public function load_data() {
-    // Set all fields values and sanitize.
+    // Set all fields values.
     foreach ( $this->fields as $field ) {
-      $field->set_value( get_post_meta( get_the_ID(), $field->get_id(), true ) );
       $field->is_saving( false );
-      $field->sanitize();
+      $field->set_value( get_post_meta( get_the_ID(), $field->get_id(), true ) );
     }
   }
 
@@ -479,13 +492,14 @@ class AM_MB {
 
     // Loop through all fields and save the meta data.
     foreach ( $this->fields as $field ) {
+      // Set field to saving state.
+      $field->is_saving( true );
+
       $value_new = ( isset( $_POST[ $field->get_id() ] ) ) ? $_POST[ $field->get_id() ] : null;
       $field->set_value_new( $value_new );
       $field->set_value( get_post_meta( $post_id, $field->get_id(), true ) );
 
-      // Sanitize field before save.
-      $field->is_saving( true );
-      $field->sanitize();
+      // Save field.
       $field->save( $post_id );
     }
   }

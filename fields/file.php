@@ -24,6 +24,13 @@ class AM_MBF_File extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'intval';
+
+  /**
    * Error message in case the file attachment is not valid.
    *
    * @since 1.1.0
@@ -34,6 +41,8 @@ class AM_MBF_File extends AM_MBF {
 
   /**
    * Check AM_MBF for description.
+   *
+   * @todo Set class on div to set if the file has been selected and get rid of $hide_upload_button and $hide_clear_button.
    *
    * @since 1.0.0
    */

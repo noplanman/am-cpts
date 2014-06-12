@@ -18,7 +18,16 @@ class AM_MBF_Url extends AM_MBF {
    *
    * @since 1.0.0
    */
-  protected $sanitizer = 'text_field'; // 'url' sanitizer removes text if it's not a correct email address.
+  protected $sanitizer = 'url';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * 'url' validator removes text if it's not a correct url.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
 
   /**
    * Check AM_MBF for description.

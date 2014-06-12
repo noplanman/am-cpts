@@ -84,6 +84,15 @@ abstract class AM_MBF {
   protected $sanitizer = 'text_field';
 
   /**
+   * The validator to use for this field.
+   *
+   * @since 1.2.0
+   *
+   * @var string
+   */
+  protected $validator = 'none';
+
+  /**
    * Check if this field is being saved or loaded (required for sanitization).
    *
    * @since 1.0.0
@@ -147,7 +156,7 @@ abstract class AM_MBF {
   protected $settings = array();
 
   /**
-   * The currently set meta value.
+   * The currently set meta data value.
    *
    * @since 1.0.0
    *
@@ -156,7 +165,16 @@ abstract class AM_MBF {
   protected $value = null;
 
   /**
-   * The new meta value to be set.
+   * The currently set raw meta data value.
+   *
+   * @since 1.2.0
+   *
+   * @var string|array
+   */
+  protected $value_raw = null;
+
+  /**
+   * The new meta data value to be set.
    *
    * @since 1.0.0
    *
@@ -280,14 +298,115 @@ abstract class AM_MBF {
   }
 
   /**
-   * Modify the new values before it gets sanitized. Could be used to bring the data into the right format.
+   * Modify the new value before it gets validated. Could be used to bring the data into the right format.
+   *
+   * @since 1.2.0
+   */
+  protected function pre_validate() {
+    // This can be overridden if necessary.
+  }
+
+  /**
+   * Modify the new value after it has been validated. Could be used to bring the data into the right format.
+   *
+   * @since 1.2.0
+   */
+  protected function post_validate() {
+    // This can be overridden if necessary.
+  }
+
+  protected function validate() {
+    // Pre-Validate new value data.
+    $this->pre_validate();
+
+    // Check which values have to be validated, the old or new ones.
+    $values_to_validate = ( $this->is_saving ) ? $this->value_new : $this->value;
+
+    // If value has been set, validate!
+    if ( isset( $values_to_validate ) ) {
+
+      // If the value to validate is an array, validate each individual element of the array.
+      // Remember if the value was an array to begin with, because an array is created anyways to loop through the entries.
+      $was_array = true;
+      if ( ! is_array( $values_to_validate ) ) {
+        $values_to_validate = array ( $values_to_validate );
+        $was_array = false;
+      }
+
+      // The validated values.
+      $values_validated = array();
+      foreach ( $values_to_validate as $key => $value ) {
+        switch ( $this->validator ) {
+          case 'absint':
+            $values_validated[ $key ] = absint( $value );
+            break;
+          case 'intval':
+            $values_validated[ $key ] = intval( $value );
+            break;
+          case 'floatval':
+            $values_validated[ $key ] = floatval( $value );
+            break;
+          case 'hexval';
+            $values_validated[ $key ] = preg_replace('/[^a-f0-9]+/', '', strtolower( $value ) );
+            break;
+          case 'textarea':
+            $values_validated[ $key ] = esc_textarea( $value );
+            break;
+          case 'kses_post':
+            $values_validated[ $key ] = wp_kses_post( $value );
+            break;
+          case 'kses_data':
+            $values_validated[ $key ] = wp_kses_data( $value );
+            break;
+          case 'url':
+            $values_validated[ $key ] = esc_url_raw( $value );
+            break;
+          case 'email':
+            $values_validated[ $key ] = ( $email = is_email( $value ) ) ? $email : null;
+            break;
+          case 'title':
+            $values_validated[ $key ] = sanitize_title( $value );
+            break;
+          case 'boolean':
+            $values_validated[ $key ] = ( isset( $value ) && ( intval( $value ) === 1 || true === $value || 'true' === trim( $value ) ) );
+            break;
+          case 'text_field':
+            $values_validated[ $key ] = sanitize_text_field( $value );
+          case 'none':
+          default:
+            $values_validated[ $key ] = $value;
+        }
+      }
+
+      // Remove all invalid values.
+      array_filter( $values_validated );
+
+      // If the value was an array to start with, just take the first entry of the newly validated array.
+      if ( ! $was_array ) {
+        $values_validated = ( ! empty( $values_validated ) ) ? reset( $values_validated ) : null;
+      }
+
+      // Set the new value.
+      if ( $this->is_saving ) {
+        $this->value_new = $values_validated;
+      } else {
+        $this->value = $values_validated;
+      }
+    }
+
+    // Post-Validate new value data.
+    $this->post_validate();
+  }
+
+  /**
+   * Modify the new value before it gets sanitized. Could be used to bring the data into the right format.
    */
   protected function pre_sanitize() {
     // This can be overridden if necessary.
   }
 
   /**
-   * Modify the new values after they have been  it gets sanitized. Could be used to bring the data into the right format.
+   * Modify the new value after it has been sanitized. Could be used to bring the data into the right format.
    */
   protected function post_sanitize() {
     // This can be overridden if necessary.
@@ -295,26 +414,28 @@ abstract class AM_MBF {
 
   /**
    * Sanitize the new value of this field and all repeatable fields.
+   *
+   * @since  1.0.0
    */
   public function sanitize() {
-    // Pre-Sanitize new value data.
+
+    // Pre-Sanitize value.
     $this->pre_sanitize();
 
-    // Check which values have to be sanitized, the old or new ones.
-    $values_to_sanitize = ( $this->is_saving ) ? $this->value_new : $this->value;
-
-    if ( isset( $values_to_sanitize ) ) {
+    // If value(s) has been set, sanitize!
+    if ( isset( $this->value ) ) {
 
       // If the value to sanitize is an array, sanitize each individual element of the array.
       // Remember if the value was an array to begin with, because an array is created anyways to loop through the entries.
       $was_array = true;
-      if ( ! is_array( $values_to_sanitize ) ) {
-        $values_to_sanitize = array ( $values_to_sanitize );
+      if ( ! is_array( $this->value ) ) {
+        $this->value = array ( $this->value );
         $was_array = false;
       }
 
+      // The sanitized values.
       $values_sanitized = array();
-      foreach ( $values_to_sanitize as $key => $value ) {
+      foreach ( $this->value as $key => $value ) {
         switch ( $this->sanitizer ) {
           case 'none':
             $values_sanitized[ $key ] = $value;
@@ -341,7 +462,7 @@ abstract class AM_MBF {
             $values_sanitized[ $key ] = wp_kses_data( $value );
             break;
           case 'url':
-            $values_sanitized[ $key ] = esc_url_raw( $value );
+            $values_sanitized[ $key ] = esc_url( $value );
             break;
           case 'email':
             $values_sanitized[ $key ] = sanitize_email( $value );
@@ -363,14 +484,11 @@ abstract class AM_MBF {
         $values_sanitized = reset( $values_sanitized );
       }
 
-      if ( $this->is_saving ) {
-        $this->value_new = $values_sanitized;
-      } else {
-        $this->value = $values_sanitized;
-      }
+      // Save the sanitized values.
+      $this->value = $values_sanitized;
     }
 
-    // Post-Sanitize new value data.
+    // Post-Sanitize value.
     $this->post_sanitize();
   }
 
@@ -866,7 +984,9 @@ abstract class AM_MBF {
    * @param object|array $value
    */
   public function set_value( $value ) {
+    $this->value_raw = $value;
     $this->value = $value;
+    $this->validate();
   }
 
   /**
@@ -874,9 +994,14 @@ abstract class AM_MBF {
    *
    * @since 1.0.0
    *
+   * @param bool $raw If the escaped or raw value should be returned.
    * @return object|array
    */
-  public function get_value() {
+  public function get_value( $raw = false ) {
+    if ( $raw ) {
+      return $this->value_raw;
+    }
+    $this->sanitize();
     return $this->value;
   }
 
@@ -889,6 +1014,7 @@ abstract class AM_MBF {
    */
   public function set_value_new( $value_new ) {
     $this->value_new = $value_new;
+    $this->validate();
   }
 
   /**
@@ -921,6 +1047,9 @@ abstract class AM_MBF {
    * @param integer $post_id ID of the post being saved.
    */
   public function save( $post_id ) {
+    // Validate the field before the new value gets saved.
+    $this->validate();
+
     if ( ! isset( $this->value_new ) || '' == $this->value_new || array() == $this->value_new ) {
       // Remove the post meta data.
       delete_post_meta( $post_id, $this->id, $this->value );

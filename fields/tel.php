@@ -23,6 +23,13 @@ class AM_MBF_Tel extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
+
+  /**
+   * Check AM_MBF for description.
+   *
    * @since 1.0.0
    */
   public function output() {

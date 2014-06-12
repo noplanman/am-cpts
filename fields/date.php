@@ -5,6 +5,7 @@
  *
  * @todo datetime, time.
  * @todo More options. Check jQuery UI for all possibilities.
+ * @todo Validator for date.
  *
  * @since 1.0.0
  */
@@ -22,6 +23,13 @@ class AM_MBF_Date extends AM_MBF {
    * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
 
   /**
    * Constructor to optionally define settings.
