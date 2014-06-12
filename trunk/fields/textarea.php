@@ -23,6 +23,13 @@ class AM_MBF_TextArea extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
+   * @since 1.2.0
+   */
+  protected $validator = 'none';
+
+  /**
+   * Check AM_MBF for description.
+   *
    * @since 1.0.0
    */
   public function output() {
@@ -33,7 +40,7 @@ class AM_MBF_TextArea extends AM_MBF {
     return sprintf( '<textarea name="%2$s" id="%1$s" cols="%4$d" rows="%5$d"%6$s%7$s>%3$s</textarea>',
       esc_attr( $this->id ),
       esc_attr( $this->name ),
-      esc_textarea( $this->value ),
+      $this->value,
       ( $cols > 0 ) ? $cols : 40,
       ( $rows > 0 ) ? $rows : 4,
       $this->get_classes(),

@@ -25,6 +25,13 @@ class AM_MBF_Editor extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
+   * @since 1.2.0
+   */
+  protected $validator = 'none';
+
+  /**
+   * Check AM_MBF for description.
+   *
    * @since 1.0.0
    */
   protected $is_repeatable = false;

@@ -18,7 +18,16 @@ class AM_MBF_Email extends AM_MBF {
    *
    * @since 1.0.0
    */
-  protected $sanitizer = 'text_field'; // 'email' sanitizer removes text if it's not a correct email address.
+  protected $sanitizer = 'email';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * 'email' validator removes text if it's not a correct email address.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
 
   /**
    * Check AM_MBF for description.

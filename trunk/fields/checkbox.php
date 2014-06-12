@@ -23,6 +23,13 @@ class AM_MBF_Checkbox extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
+   * @since 1.2.0
+   */
+  protected $validator = 'boolean';
+
+  /**
+   * Check AM_MBF for description.
+   *
    * @since 1.0.0
    */
   public function output() {
@@ -56,6 +63,13 @@ class AM_MBF_CheckboxGroup extends AM_MBF {
    * @since 1.0.0
    */
   protected $sanitizer = 'text_field';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
 
   /**
    * Constructor to optionally define options.

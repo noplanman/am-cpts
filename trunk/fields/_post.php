@@ -26,6 +26,13 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'intval';
+
+  /**
    * Constructor to optionally set post type and settings.
    *
    * @since 1.1.0
@@ -37,7 +44,6 @@ class AM_MBF_PostCheckboxes extends AM_MBF {
     $this->add_setting( 'post_type', $post_type );
     $this->add_settings( $settings );
   }
-
 
   /**
    * Check AM_MBF for description.
@@ -138,6 +144,13 @@ class AM_MBF_PostSelect extends AM_MBF {
   protected $sanitizer = 'intval';
 
   /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'intval';
+
+  /**
    * Constructor to optionally set post type and settings.
    *
    * @since 1.1.0
@@ -151,7 +164,7 @@ class AM_MBF_PostSelect extends AM_MBF {
   }
 
   /**
-   * Check AM_MBF for description.
+   * Set sub type. Check AM_MBF for description.
    *
    * @since 1.1.0
    */

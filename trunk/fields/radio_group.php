@@ -21,6 +21,13 @@ class AM_MBF_RadioGroup extends AM_MBF {
   protected $sanitizer = 'text_field';
 
   /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'text_field';
+
+  /**
    * Constructor to optionally define options.
    *
    * @since 1.0.0
