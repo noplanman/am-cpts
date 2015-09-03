@@ -7,7 +7,7 @@
  * @todo Admin notices for errors.
  * @todo Save empty array / remove all taxonomy assignments.
  */
-class AM_MBF_TaxSelect extends AM_MBF {
+class _AM_MBF_TaxSelect extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *
@@ -42,9 +42,9 @@ class AM_MBF_TaxSelect extends AM_MBF {
       $taxonomy = get_taxonomy( $this->id );
       if ( count( $terms ) > 0 ) {
 
-        $multiple = ( $this->is_multiple ) ? ' multiple="multiple"' : '';
+        $multiple = ( $this->get_setting( 'multiple' ) ) ? ' multiple="multiple"' : '';
         $ret = '<select name="' . $this->name . '" id="' . $this->id . '"'  . $multiple . $this->get_data_atts() . '>';
-        if ( ! $this->is_multiple ) {
+        if ( ! $this->get_setting( 'multiple' ) ) {
           $ret .= '<option value=""></option>'; // Select One
         }
 
@@ -82,7 +82,7 @@ class AM_MBF_TaxSelect extends AM_MBF {
  * @todo Admin notices for errors.
  * @todo Save empty array / remove all taxonomy assignments.
  */
-class AM_MBF_TaxCheckboxes extends AM_MBF {
+class _AM_MBF_TaxCheckboxes extends AM_MBF {
   /**
    * Check AM_MBF for description.
    *

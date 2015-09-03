@@ -1,0 +1,23 @@
+FIELDS:
+
+  SELECT / CHOSEN:
+  options:
+    force (bool): if the select field has an empty 1st option or not.
+
+  FILE:
+    display the file name underneath the title:
+    i.e.
+      Image Title
+      (file-name.ext)
+
+  CHECKBOX / RADIO:
+  with image
+
+
+Make JS OOP.
+
+
+
+
+
+

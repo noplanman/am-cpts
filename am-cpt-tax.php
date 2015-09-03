@@ -1,4 +1,16 @@
 <?php
+/**
+ * @package AM_CPT_Tax
+ * @version 1.2.0
+ */
+/*
+Plugin Name: AM CPT Tax
+Plugin URI:
+Description: Create custom post types and taxonomies really easily.
+Author: Armando Lüscher
+Version: 1.2.0
+Author URI: http://armyman.ch/
+*/
 
 /**
  * Base class for AM_CPT and AM_Tax
@@ -28,7 +40,7 @@ abstract class AM_CPT_Tax {
   protected $priority = 10;
 
   /**
-   * Register the CPT with all it's taxonomies and meta boxes (callback for WP add_action).
+   * Register the CPT with all it's taxonomies (callback for WP add_action).
    *
    * @since 1.0.0
    */
@@ -327,15 +339,6 @@ class AM_CPT extends AM_CPT_Tax {
   protected $taxonomies = array();
 
   /**
-   * Meta boxes assigned to this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @var array
-   */
-  protected $meta_boxes = array();
-
-  /**
    * An array of all created AM_CPT.
    *
    * @since 1.0.0
@@ -385,14 +388,12 @@ class AM_CPT extends AM_CPT_Tax {
    * @param string  $slug     Slug of this taxonomy.
    * @param array   $args     Arguments of this taxonomy.
    * @param AM_Tax|array $taxonomies Object or array of AM_Tax to add to this CPT.
-   * @param AM_MB|array $meta_boxes Object or array of AM_MB to add to this CPT.
    * @param integer $priority Priority to initialize this CPT. (Default: 10)
    */
-  public function __construct( $slug, $args, $taxonomies = null, $meta_boxes = null, $priority = 10 ) {
+  public function __construct( $slug, $args, $taxonomies = null, $priority = 10 ) {
     $this->set_slug( $slug );
     $this->set_args( $args );
     $this->assign_taxonomy( $taxonomies );
-    $this->assign_meta_box( $meta_boxes );
     $this->set_priority( $priority );
   }
 
@@ -455,105 +456,6 @@ class AM_CPT extends AM_CPT_Tax {
   }
 
   /**
-   * Assign meta box(es) to this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @param AM_MB|array $meta_boxes Object or Array of AM_MB to add to this CPT.
-   */
-  final public function assign_meta_box( $meta_boxes ) {
-    if ( ! isset( $meta_boxes ) ) {
-      return;
-    }
-
-    // Make sure we have an array to work with.
-    if ( ! is_array( $meta_boxes ) ) {
-      $meta_boxes = array( $meta_boxes );
-    }
-
-    // Add all meta boxes.
-    foreach ( $meta_boxes as $meta_box ) {
-      if ( $meta_box instanceof AM_MB ) {
-        $meta_box->assign_post_type( $this->slug );
-        $this->meta_boxes[ $meta_box->get_id() ] = $meta_box;
-      }
-    }
-  }
-
-  /**
-   * Remove meta box(es) from this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @param string|array $meta_boxes Meta box / boxes to remove / unassign from this CPT. Single key, comma seperated keys, array of keys.
-   */
-  final public function remove_meta_box( $meta_boxes ) {
-    if ( ! isset( $meta_boxes ) ) {
-      return;
-    }
-
-    // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
-    if ( ! is_array( $meta_boxes ) ) {
-      $meta_boxes = explode( ',', $meta_boxes );
-    }
-
-    // Remove all meta boxes.
-    $this->meta_boxes = array_diff_key( $this->meta_boxes, array_flip( $meta_boxes ) );
-  }
-
-  /**
-   * Get meta boxes assigned to this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @param string|array $meta_boxes Meta box / boxes to get from this CPT. Single key, comma seperated keys, array of keys.
-   * @return array List of all AM_MB objects.
-   */
-  final public function get_meta_boxes( $meta_boxes = null) {
-
-    $ret_meta_boxes = array();
-
-    if ( ! isset( $meta_boxes ) ) {
-      // Return them all.
-      $ret_meta_boxes = $this->meta_boxes;
-    } else {
-
-      // Make sure we have an array to work with. If we have comma seperated values, make them into an array.
-      if ( ! is_array( $meta_boxes ) ) {
-        $meta_boxes = explode( ',', $meta_boxes );
-      }
-
-      // Return only the requested meta boxes.
-      $ret_meta_boxes = array_intersect_key( $this->meta_boxes, array_flip( $meta_boxes ) );
-    }
-
-    // Load meta data for all meta boxes to be returned.
-    foreach ( $ret_meta_boxes as $meta_box ) {
-      $meta_box->load_data();
-    }
-
-    // Return the requested meta boxes.
-    return $ret_meta_boxes;
-  }
-
-  /**
-   * Get the selected meta box assigned to this CPT.
-   *
-   * @since 1.0.0
-   *
-   * @param string $meta_box ID of the meta box to get.
-   * @return AM_MB The requested meta box, if it exists.
-   */
-  final public function get_meta_box( $meta_box ) {
-    if ( array_key_exists( $meta_box, $this->meta_boxes ) ) {
-      $ret_meta_box = $this->meta_boxes[ $meta_box ];
-      $ret_meta_box->load_data();
-      return $ret_meta_box;
-    }
-    return null;
-  }
-
-  /**
    * Add all actions related to registering this custom post type.
    */
   final public function register() {
@@ -563,11 +465,6 @@ class AM_CPT extends AM_CPT_Tax {
     // Register all assigned taxonomies.
     foreach ( $this->taxonomies as $taxonomy ) {
       $taxonomy->register();
-    }
-
-    // Register all assigned meta boxes.
-    foreach ( $this->meta_boxes as $meta_box ) {
-      $meta_box->register();
     }
 
     add_action( 'init', array( $this, '_register' ), $this->priority );

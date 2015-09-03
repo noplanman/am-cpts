@@ -2,14 +2,14 @@
 
 /**
  * @package AM_CPTS
- * @version 1.0.0
+ * @version 1.2.0
  */
 /*
 Plugin Name: AM CPTS
 Plugin URI:
 Description: Create custom post types, taxonomies and meta boxes really easily.
 Author: Armando Lüscher
-Version: 1.0.0
+Version: 1.2.0
 Author URI: http://armyman.ch/
 */
 
@@ -32,16 +32,21 @@ Examples!!
 
 $mb = new AM_MB( 'mb1', 'Metabox1' );
 $rep = AM_MBF::create( 'repeatable', 'rep', 'Repeatable', 'Repeatable Description' );
-//$rep->add_field( AM_MBF::create( 'chosen','slid12','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) ) );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
-$f = AM_MBF::create( 'select','slid12','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) );
-$f->is_multiple( true );
-$rep->add_field( $f );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+$rep->add_field( AM_MBF::create( 'select','skld1k2','slider 1', 'my description',
+    array('min'=>25, 'max'=>99, 'step'=>3.4),
+    array('chosen'=>true, 'force'=>true, 'multiple'=>true)
+  )
+);
+$rep->add_field( AM_MBF::create( 'color','sld12','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4, 'handles'=>1) ) );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
+$f = AM_MBF::create( 'tax_checkboxes','tc','slider 1', 'my description' );
+//$f->add_setting( 'multiple', true );
+//$rep->add_field( $f );//, array( 'tinymce' => false, 'quicktags' => false ) ) );//, array('min'=>5,'max'=>100,'step'=>5,'handles'=>3 ) ) );
 //$rep->add_field( AM_MBF::create( 'slider','slid123','slider 1', 'my description', array('min'=>25, 'max'=>99, 'step'=>3.4) ) );
-$mb->add_field( $rep );
-$mb->assign_post_type( 'post' );
+$mb->add_field( $f );
+$mb->assign_post_type( 'note' );
 $mb->register();
 
-return;
+//return;
 
 
 // Easily extend the AM_ classes to create classes that fit exaclty your needs!
@@ -190,7 +195,7 @@ $mb2->add_field( AM_MBF::create('text','text1','a simple text input') );
 
 
 //$f->add_options( array('one'=>'first','two'=>'second','three'=>'third','four'=>'fourth','five'=>'fifth') );
-//$f->is_multiple(true);
+//$f->add_setting( 'multiple', true );
 
 
 $mb_basic->add_field( $rep );

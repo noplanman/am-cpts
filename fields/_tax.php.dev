@@ -1,0 +1,254 @@
+<?php
+
+/**
+ * Checkboxes of taxonomy terms.
+ *
+ * Valid settings:
+ * order     Direction to order taxonomy terms.
+ * orderby   Field to order taxonomy terms by.
+ * taxonomy  Get taxonomy terms from this taxonomy.
+ *
+ * @since 1.0.0
+ */
+class AM_MBF_TaxCheckboxes extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  protected static $type = 'tax_checkboxes';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  protected $sanitizer = 'intval';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'intval';
+
+  /**
+   * Constructor to optionally set taxonomy and settings.
+   *
+   * @since 1.1.0
+   *
+   * @param string     $taxonomy Taxonomy for terms to load.
+   * @param null|array $settings Associative array of key-value pairs.
+   */
+  public function init( $taxonomy = 'post', $settings = null ) {
+    $this->add_setting( 'taxonomy', $taxonomy );
+    $this->add_settings( $settings );
+  }
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  public function output() {
+    // Make sure the taxonomy is set correctly.
+    $taxonomy = $this->get_setting( 'taxonomy' );
+    $taxonomy_object = null;
+
+    // Warning message.
+    $warning = null;
+
+    if ( ! isset( $taxonomy ) || '' == $taxonomy ) {
+      return __( 'Taxonomy has not been set.', 'am-cpts' );
+    } elseif ( ! $taxonomy_object = get_taxonomy_object( $taxonomy ) ) {
+      $warning = __( sprintf( 'Taxonomy "%1$s" is not registered.', $taxonomy ), 'am-cpts' );
+    }
+
+    // Backup id because it gets modified for each checkbox.
+    $id_bkp = $this->id;
+
+    // Get all terms for the current taxonomy.
+    $terms = get_terms( array(
+      'taxonomy' => $taxonomy,
+      'terms_per_page' => -1,
+      'orderby' => $this->get_setting( 'orderby', 'none' ),
+      'order'   => $this->get_setting( 'order', 'ASC' )
+    ) );
+
+    $ret = '';
+    if ( ! empty( $terms ) ) {
+      $ret = '<ul class="meta-box-items">';
+      foreach ( $terms as $item ) {
+        $this->id = $id_bkp . '-' . $item->ID;
+        $ret .= sprintf( '<li><input type="checkbox" value="%3$s" name="%2$s[]" id="%1$s"%5$s%6$s%7$s /><label for="%1$s">%4$s</label></li>',
+          esc_attr( $this->id ),
+          esc_attr( $this->name ),
+          esc_attr( $item->ID ),
+          esc_html( $item->post_title ),
+          checked( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false ),
+          $this->get_classes(),
+          $this->get_data_atts()
+        );
+      }
+      $ret .= '</ul>';
+    } elseif( isset( $taxonomy_object->labels->not_found ) ) {
+      $ret = $taxonomy_object->labels->not_found;
+    } else {
+      $ret = __( sprintf( 'No terms of taxonomy "%1$s" found.', $taxonomy ), 'am-cpts' );
+    }
+
+    if ( isset( $taxonomy_object->label ) ) {
+      $ret .= sprintf( '<span class="description alignright"><a href="%2$s" target="_blank">Manage %1$s</a></span>',
+        $taxonomy_object->label,
+        admin_url( 'edit.php?taxonomy=' . $taxonomy )
+      );
+    } elseif ( isset( $warning ) ) {
+      $ret .= sprintf( '<span class="description alignright">%1$s</span>',
+        $warning
+      );
+    }
+
+    // Revert id.
+    $this->id = $id_bkp;
+
+    return $ret;
+  }
+}
+
+/**
+ * Drop down of taxonomy terms.
+ *
+ * Valid settings:
+ * chosen    Display this drop down as a 'chosen' drop down.
+ * force     Force a selection.
+ * multiple  Multiple selection possible.
+ * order     Direction to order taxonomy terms.
+ * orderby   Field to order taxonomy terms by.
+ * taxonomy  Get terms from this taxonomy.
+ *
+ * @since 1.0.0
+ */
+class AM_MBF_TaxSelect extends AM_MBF {
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  protected static $type = 'tax_select';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  protected $sanitizer = 'intval';
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.2.0
+   */
+  protected $validator = 'intval';
+
+  /**
+   * Constructor to optionally set taxonomy and settings.
+   *
+   * @since 1.1.0
+   *
+   * @param string $taxonomy taxonomy for terms to load.
+   * @param null|array $settings Associative array of key-value pairs.
+   */
+  public function init( $taxonomy = 'post', $settings = null ) {
+    $this->add_setting( 'taxonomy', $taxonomy );
+    $this->add_settings( $settings );
+  }
+
+  /**
+   * Set sub type. Check AM_MBF for description.
+   *
+   * @since 1.1.0
+   */
+  public function get_sub_type() {
+    if ( $this->get_setting( 'chosen' ) ) {
+      return 'tax_chosen';
+    }
+  }
+
+  /**
+   * Check AM_MBF for description.
+   *
+   * @since 1.0.0
+   */
+  public function output() {
+    // Make sure the taxonomy is set correctly.
+    $taxonomy = $this->get_setting( 'taxonomy' );
+    $taxonomy_object = null;
+
+    // Warning message.
+    $warning = null;
+
+    if ( ! isset( $taxonomy ) || '' == $taxonomy ) {
+      return __( 'Taxonomy has not been set.', 'am-cpts' );
+    } elseif ( ! $taxonomy_object = get_taxonomy_object( $taxonomy ) ) {
+      $warning = __( sprintf( 'Taxonomy "%1$s" is not registered.', $taxonomy ), 'am-cpts' );
+    }
+
+    // Get all terms for the current taxonomy.
+    $terms = get_terms( array(
+      'taxonomy' => $taxonomy,
+      'terms_per_page' => -1,
+      'orderby' => $this->get_setting( 'orderby', 'name' ),
+      'order'   => $this->get_setting( 'order', 'ASC' )
+    ) );
+
+    $ret = '';
+    if ( ! empty( $terms ) ) {
+      // Check if this is a 'chosen' drop down.
+      $chosen = $this->get_setting( 'chosen', false );
+
+      // Add placeholder value used by chosen.
+      if ( $chosen ) {
+        $this->add_data( 'placeholder', __( 'Select One', 'am-cpts' ) );
+      }
+
+      $ret = sprintf( '<select name="%2$s" id="%1$s"%3$s%4$s%5$s>',
+        esc_attr( $this->id ),
+        esc_attr( $this->name ),
+        ( $this->get_setting( 'multiple' ) ) ? ' multiple="multiple"' : '',
+        $this->get_classes( ( $chosen ) ? 'chosen' : '' ),
+        $this->get_data_atts()
+      );
+      if ( ! $this->get_setting( 'multiple' ) && ! $this->get_setting( 'force', false ) ) {
+        $ret .= '<option value=""></option>'; // Select One
+      }
+
+      foreach ( $terms as $item ) {
+        $ret .= sprintf( '<option value="%1$s"%3$s>%2$s</option>',
+          esc_attr( $item->ID ),
+          esc_html( $item->post_title ),
+          selected( is_array( $this->value ) && in_array( $item->ID, $this->value ), true, false )
+        );
+      }
+      $ret .= '</select>';
+    } elseif ( isset( $taxonomy_object->labels->not_found ) ) {
+      $ret = $taxonomy_object->labels->not_found;
+    } else {
+      $ret = __( sprintf( 'No terms of taxonomy "%1$s" found.', $taxonomy ), 'am-cpts' );
+    }
+
+    if ( isset( $taxonomy_object->label ) ) {
+      $ret .= sprintf( '<span class="description alignright"><a href="%2$s" target="_blank">Manage %1$s</a></span>',
+        $taxonomy_object->label,
+        admin_url( 'edit.php?taxonomy=' . $taxonomy )
+      );
+    } elseif ( isset( $warning ) ) {
+      $ret .= sprintf( '<span class="description alignright">%1$s</span>',
+        $warning
+      );
+    }
+
+    return $ret;
+  }
+}
+
+?>
